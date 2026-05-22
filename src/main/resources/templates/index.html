@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interpaper · 아버지의 서재</title>
+
+    <!-- Tailwind CSS (Play CDN) — 보조 유틸리티용 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+    <!-- 책 등록 버튼 -->
+    <button id="addBookBtn" class="add-book-btn" type="button">
+        <span class="plus">+</span> 책 등록
+    </button>
+
+    <!-- ===== HERO : Coverflow ===== -->
+    <section class="hero" id="top">
+        <header class="site-header">
+            <p class="eyebrow">Interpaper Library</p>
+            <h1>아버지의 서재</h1>
+            <div class="divider"></div>
+            <p>가운데 책을 클릭하면, 아래에서 책의 이야기가 펼쳐집니다.</p>
+        </header>
+
+        <main class="coverflow" aria-label="저서 진열대">
+            <button id="cfPrev" class="cf-nav cf-prev" type="button" aria-label="이전 책">&#8249;</button>
+            <div id="cfStage" class="cf-stage"></div>
+            <button id="cfNext" class="cf-nav cf-next" type="button" aria-label="다음 책">&#8250;</button>
+            <div id="cfCaption" class="cf-caption"></div>
+            <div id="cfDots" class="cf-dots"></div>
+            <div class="scroll-cue">책을 클릭하세요</div>
+        </main>
+    </section>
+
+    <!-- ===== 책 소개 ===== -->
+    <section id="detail" class="detail-section" hidden>
+        <div class="detail-card">
+            <div class="cover-col">
+                <img id="dCover" src="" alt="">
+            </div>
+            <div class="text-col">
+                <p class="kicker">Book</p>
+                <h2 id="dTitle"></h2>
+                <p class="d-meta" id="dMeta"></p>
+                <div class="intro" id="dIntro"></div>
+                <blockquote class="author-note" id="dNote">
+                    <span class="label">저자의 글</span>
+                    <span id="dNoteText"></span>
+                </blockquote>
+            </div>
+        </div>
+        <button class="to-discuss" id="toDiscuss" type="button">저자와의 토론 보기 &#8595;</button>
+    </section>
+
+    <!-- ===== 저자와의 토론 ===== -->
+    <section id="discussion" class="discuss-section" hidden>
+        <div class="discuss-wrap">
+            <div class="discuss-head">
+                <p class="eyebrow">Conversation</p>
+                <h3>저자와의 토론 <span class="cnt" id="dCount"></span></h3>
+                <p class="sub">차분히 머무르며, 한 줄의 감상을 건네주세요.</p>
+            </div>
+            <div id="commentTree" class="comment-tree"></div>
+            <div id="rootForm"></div>
+        </div>
+    </section>
+
+    <!-- 사이드 버튼: 맨 위(코버플로우)로 -->
+    <button id="backToTop" class="side-btn" type="button">
+        <span class="arrow">&#8593;</span>
+        <span>저자의 다른 책 보기</span>
+    </button>
+
+    <!-- ===== 새 책 등록 모달 ===== -->
+    <div id="addModal" class="modal-backdrop" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-label="새 책 등록">
+            <button class="modal-close" id="addClose" type="button" aria-label="닫기">&times;</button>
+            <p class="eyebrow">New Book</p>
+            <h3>새 책 등록</h3>
+
+            <form id="addForm" novalidate>
+                <label class="field">
+                    <span class="field-label">표지 이미지</span>
+                    <div class="file-drop" id="fileDrop">
+                        <img id="coverPreview" alt="표지 미리보기" hidden>
+                        <span class="fd-text" id="fdText">클릭하여 이미지 선택<br><small>JPG · PNG · 최대 8MB</small></span>
+                        <input type="file" id="coverInput" name="cover" accept="image/*" required>
+                    </div>
+                </label>
+                <label class="field">
+                    <span class="field-label">제목</span>
+                    <input type="text" name="title" maxlength="200" placeholder="책 제목" required>
+                </label>
+                <label class="field">
+                    <span class="field-label">책 소개</span>
+                    <textarea name="introduction" maxlength="4000" rows="3" placeholder="책의 내용을 소개해 주세요" required></textarea>
+                </label>
+                <label class="field">
+                    <span class="field-label">저자의 글</span>
+                    <textarea name="authorNote" maxlength="2000" rows="3" placeholder="저자가 독자에게 남기는 짧은 글" required></textarea>
+                </label>
+                <div class="modal-actions">
+                    <button type="submit" class="btn" id="addSubmit">등록하기</button>
+                    <button type="button" class="btn secondary" id="addCancel">취소</button>
+                    <span class="form-error" id="addError"></span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

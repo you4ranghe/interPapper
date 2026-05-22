@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f4f43"/>
+      <stop offset="1" stop-color="#16271f"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="560" fill="url(#g1)"/>
+  <rect x="22" y="22" width="356" height="516" fill="none" stroke="#caa86a" stroke-width="2" opacity="0.7"/>
+  <text x="200" y="120" fill="#caa86a" font-family="Georgia, serif" font-size="22" letter-spacing="6" text-anchor="middle">ESSAY</text>
+  <text x="200" y="285" fill="#f3ead6" font-family="Georgia, serif" font-size="40" text-anchor="middle">바람이</text>
+  <text x="200" y="335" fill="#f3ead6" font-family="Georgia, serif" font-size="40" text-anchor="middle">머무는 서재</text>
+  <line x1="120" y1="375" x2="280" y2="375" stroke="#caa86a" stroke-width="1.5"/>
+  <text x="200" y="470" fill="#cfc4ad" font-family="Georgia, serif" font-size="18" letter-spacing="3" text-anchor="middle">아버지의 산문</text>
+</svg>

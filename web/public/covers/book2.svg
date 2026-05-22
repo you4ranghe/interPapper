@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+  <defs>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4a2f2a"/>
+      <stop offset="1" stop-color="#241211"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="560" fill="url(#g2)"/>
+  <rect x="22" y="22" width="356" height="516" fill="none" stroke="#d9b88a" stroke-width="2" opacity="0.7"/>
+  <text x="200" y="120" fill="#d9b88a" font-family="Georgia, serif" font-size="22" letter-spacing="6" text-anchor="middle">WRITING</text>
+  <text x="200" y="285" fill="#f6ecdc" font-family="Georgia, serif" font-size="40" text-anchor="middle">문장의</text>
+  <text x="200" y="335" fill="#f6ecdc" font-family="Georgia, serif" font-size="40" text-anchor="middle">결을 따라</text>
+  <line x1="120" y1="375" x2="280" y2="375" stroke="#d9b88a" stroke-width="1.5"/>
+  <text x="200" y="470" fill="#d6c4ad" font-family="Georgia, serif" font-size="18" letter-spacing="3" text-anchor="middle">글쓰기 노트</text>
+</svg>

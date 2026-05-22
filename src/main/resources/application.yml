@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: interpaper
+
+  # H2 파일 DB — 등록한 책/업로드 표지가 재시작 후에도 유지됨
+  datasource:
+    url: jdbc:h2:file:./data/interpaper;DB_CLOSE_DELAY=-1;MODE=MySQL;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true          # http://localhost:8081/h2-console
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+    show-sql: true
+
+  # 표지 이미지 업로드 한도
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 10MB
+
+  # 모든 JSON 응답 시각을 Asia/Seoul 기준으로 직렬화
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+
+# 업로드 파일 저장 위치 (프로젝트 실행 디렉토리 하위 uploads/)
+app:
+  upload-dir: ${user.dir}/uploads
