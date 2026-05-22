@@ -58,7 +58,9 @@ body::after {
 
 /* ===== Coverflow ===== */
 .coverflow { position: relative; flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 520px; perspective: 2200px; perspective-origin: 50% 42%; }
-.cf-stage { position: relative; width: 100%; height: 460px; transform-style: preserve-3d; opacity: 0; transition: opacity .8s ease; }
+.cf-stage { position: relative; width: 100%; height: 460px; transform-style: preserve-3d; opacity: 0; transition: opacity .8s ease; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+.cf-stage:active { cursor: grabbing; }
+.cf-stage img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .cf-stage.ready { opacity: 1; }
 .cf-stage.no-anim .cf-item { transition: none !important; }
 
@@ -93,8 +95,8 @@ body::after {
 .cf-caption .t { font-size: clamp(1.05rem, 2.3vw, 1.4rem); letter-spacing: .05em; color: #fbf4e4; }
 .cf-caption .s { font-size: .78rem; letter-spacing: .12em; color: var(--gold-soft); text-transform: uppercase; }
 
-.cf-nav { position: absolute; top: 46%; transform: translateY(-50%); z-index: 60; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: rgba(18,12,7,.42); backdrop-filter: blur(10px); color: var(--paper); border: 1px solid rgba(226,196,137,.28); font-size: 1.5rem; cursor: pointer; transition: transform .25s var(--ease-spring), background .25s, border-color .25s; }
-.cf-nav:hover { background: rgba(46,32,18,.7); border-color: var(--gold); transform: translateY(-50%) scale(1.08); }
+.cf-nav { position: absolute; top: 46%; transform: translateY(-50%); z-index: 60; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: rgba(18,12,7,.42); backdrop-filter: blur(10px); color: var(--paper); border: none; font-size: 1.5rem; cursor: pointer; transition: transform .25s var(--ease-spring), background .25s; }
+.cf-nav:hover { background: rgba(46,32,18,.7); transform: translateY(-50%) scale(1.08); }
 .cf-prev { left: clamp(10px, 5vw, 70px); }
 .cf-next { right: clamp(10px, 5vw, 70px); }
 
@@ -159,8 +161,20 @@ body::after {
 .discuss-head .sub { margin: 12px 0 0; color: #b6a47f; font-style: italic; font-size: .92rem; }
 .discuss-head .cnt { color: var(--gold-soft); }
 
-.comment { position: relative; padding: 14px 0 2px 20px; margin-top: 14px; }
-.comment::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(180deg, rgba(226,196,137,.4), rgba(226,196,137,.05)); }
+.comment { position: relative; padding: 12px 0 2px; margin-top: 14px; }
+/* 답글 스레드: 유튜브식 세로 연결선 + 휘어 들어가는 엘보 */
+.children { position: relative; margin-left: 18px; padding-left: 26px; }
+.children::before {
+  content: ""; position: absolute; left: 0; top: -12px; bottom: 22px;
+  width: 2px; background: rgba(226,196,137,.22);
+}
+.children > .comment::before {
+  content: ""; position: absolute; left: -26px; top: -12px;
+  width: 24px; height: 34px;
+  border-left: 2px solid rgba(226,196,137,.22);
+  border-bottom: 2px solid rgba(226,196,137,.22);
+  border-bottom-left-radius: 14px;
+}
 .c-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .c-nick { font-weight: 600; color: #e7d8b8; }
 .c-nick.author { color: #1c130a; background: linear-gradient(135deg, var(--gold), #c79a4f); padding: 1px 10px; border-radius: 20px; font-size: .8rem; }
@@ -169,7 +183,6 @@ body::after {
 .c-body { margin: 6px 0 7px; line-height: 1.72; color: #d8cbb0; white-space: pre-line; }
 .c-reply-btn { background: none; border: none; color: var(--gold-soft); cursor: pointer; font-size: .8rem; padding: 0; }
 .c-reply-btn:hover { color: var(--gold); text-decoration: underline; }
-.children { margin-left: 10px; }
 .discussion .empty { color: #8a7a5c; font-style: italic; }
 
 .comment-form { background: rgba(255,255,255,.04); border: 1px solid rgba(226,196,137,.16); border-radius: 14px; padding: 16px; margin-top: 14px; backdrop-filter: blur(6px); }

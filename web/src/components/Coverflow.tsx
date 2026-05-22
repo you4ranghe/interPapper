@@ -64,6 +64,44 @@ export default function Coverflow({
 
   const openBook = useCallback((id: number) => onSelect(id), [onSelect]);
 
+  // ===== 드래그/스와이프로 책 넘기기 (PC 마우스 + 모바일 터치) =====
+  const STEP = 64; // 이 픽셀만큼 끌 때마다 한 권 이동
+  const dragRef = useRef({ active: false, startX: 0, lastSteps: 0, moved: false });
+
+  const stepBy = useCallback(
+    (delta: number) => {
+      if (delta === 0) return;
+      setPointer((p) => p + delta);
+      scheduleRebase();
+    },
+    [scheduleRebase]
+  );
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    dragRef.current = { active: true, startX: e.clientX, lastSteps: 0, moved: false };
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  }, []);
+
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      const d = dragRef.current;
+      if (!d.active) return;
+      const dx = e.clientX - d.startX;
+      if (Math.abs(dx) > 6) d.moved = true;
+      const steps = Math.round(dx / STEP);
+      if (steps !== d.lastSteps) {
+        stepBy(-(steps - d.lastSteps)); // 오른쪽으로 끌면 이전 책, 왼쪽이면 다음 책
+        d.lastSteps = steps;
+      }
+    },
+    [stepBy]
+  );
+
+  const endDrag = useCallback((e: React.PointerEvent) => {
+    dragRef.current.active = false;
+    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+  }, []);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "ArrowLeft") goPrev();
@@ -100,11 +138,18 @@ export default function Coverflow({
         &#8249;
       </button>
 
-      <div className={`cf-stage${ready ? " ready" : ""}${noAnim ? " no-anim" : ""}`}>
+      <div
+        className={`cf-stage${ready ? " ready" : ""}${noAnim ? " no-anim" : ""}`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+      >
         {items.map(({ key, book }) => {
           const offset = key - pointer;
           const cls = posClass(offset);
           const onClick = () => {
+            if (dragRef.current.moved) return; // 드래그였으면 클릭 무시
             if (key === pointer) openBook(book.id);
             else moveTo(key);
           };
