@@ -189,6 +189,20 @@ body::after {
 .gate { color: #b6a47f; font-style: italic; line-height: 1.7; padding: 16px; border: 1px dashed rgba(226,196,137,.22); border-radius: 12px; text-align: center; }
 .gate a { color: var(--gold); }
 
+/* 같은 페이지에서 아래로 펼쳐지는 영역 */
+.reveal-wrap { position: relative; z-index: 2; opacity: 0; transform: translateY(30px); transition: opacity .7s var(--ease-out), transform .7s var(--ease-out); }
+.reveal-wrap.on { opacity: 1; transform: none; }
+.lib-loading { text-align: center; color: #cdbf9f; font-style: italic; padding: 60px 0; }
+.to-discuss { display: inline-flex; margin-top: 26px; padding: 11px 24px; border-radius: 24px; background: rgba(18,12,7,.5); backdrop-filter: blur(10px); color: var(--paper); border: 1px solid rgba(226,196,137,.3); font-family: inherit; font-size: .9rem; letter-spacing: .04em; cursor: pointer; transition: transform .25s var(--ease-spring), background .25s; }
+.to-discuss:hover { background: rgba(46,32,18,.7); transform: translateY(2px); }
+
+/* 사이드 버튼: 저자의 다른 책 보기(맨 위로) */
+.side-btn { position: fixed; right: clamp(14px, 2vw, 30px); top: 50%; transform: translateY(-50%) translateX(28px); z-index: 90; display: inline-flex; align-items: center; gap: 10px; padding: 13px 20px; border-radius: 30px; cursor: pointer; font-family: inherit; font-size: .86rem; letter-spacing: .03em; color: var(--paper); background: rgba(18,12,7,.6); backdrop-filter: blur(14px) saturate(140%); border: 1px solid rgba(226,196,137,.34); box-shadow: 0 16px 44px rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .4s var(--ease-out), transform .5s var(--ease-spring), background .25s; }
+.side-btn.show { opacity: 1; pointer-events: auto; transform: translateY(-50%) translateX(0); }
+.side-btn:hover { background: rgba(46,32,18,.82); border-color: var(--gold); }
+.side-btn .arrow { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), #c79a4f); color: #1c130a; font-size: .95rem; }
+@media (max-width: 760px) { .side-btn { top: auto; bottom: 22px; right: 16px; transform: translateY(28px); } .side-btn.show { transform: translateY(0); } }
+
 @media (max-width: 760px) {
   .detail-card { grid-template-columns: 1fr; }
   .detail-card .cover-col { max-width: 240px; margin: 0 auto; }

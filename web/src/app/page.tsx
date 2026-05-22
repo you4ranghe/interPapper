@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
-import Coverflow from "@/components/Coverflow";
+import LibraryHome from "@/components/LibraryHome";
 import LogoutButton from "@/components/LogoutButton";
 import type { BookSummary } from "@/lib/types";
 
@@ -23,16 +23,14 @@ export default async function Home() {
   }
 
   return (
-    <div className="hero">
+    <>
       <div className="top-actions">
         {session.userId ? (
           <>
             <span className="pill-btn" style={{ pointerEvents: "none" }}>
               <span className="who">{session.profile?.name || session.email}</span>님
             </span>
-            {session.isAdmin && (
-              <Link className="pill-btn solid" href="/admin">서재관리</Link>
-            )}
+            {session.isAdmin && <Link className="pill-btn solid" href="/admin">서재관리</Link>}
             <LogoutButton />
           </>
         ) : (
@@ -43,14 +41,12 @@ export default async function Home() {
         )}
       </div>
 
-      <header className="site-header">
-        <p className="eyebrow">Interpaper Library</p>
-        <h1>아버지의 서재</h1>
-        <div className="divider" />
-        <p>가운데 책을 클릭하면, 책 뒤의 이야기가 펼쳐집니다.</p>
-      </header>
-
-      <Coverflow books={books} />
-    </div>
+      <LibraryHome
+        books={books}
+        userId={session.userId}
+        userName={session.profile?.name ?? null}
+        emailVerified={session.emailVerified}
+      />
+    </>
   );
 }

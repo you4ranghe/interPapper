@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { BookSummary } from "@/lib/types";
 
 const mod = (a: number, m: number) => ((a % m) + m) % m;
@@ -15,8 +14,13 @@ function posClass(offset: number): string {
   return "pos-hidden";
 }
 
-export default function Coverflow({ books }: { books: BookSummary[] }) {
-  const router = useRouter();
+export default function Coverflow({
+  books,
+  onSelect,
+}: {
+  books: BookSummary[];
+  onSelect: (id: number) => void;
+}) {
   const n = books.length;
   const [pointer, setPointer] = useState(n);
   const [ready, setReady] = useState(false);
@@ -58,10 +62,7 @@ export default function Coverflow({ books }: { books: BookSummary[] }) {
   const goPrev = useCallback(() => moveTo(pointer - 1), [moveTo, pointer]);
   const goNext = useCallback(() => moveTo(pointer + 1), [moveTo, pointer]);
 
-  const openBook = useCallback(
-    (id: number) => router.push(`/books/${id}`),
-    [router]
-  );
+  const openBook = useCallback((id: number) => onSelect(id), [onSelect]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

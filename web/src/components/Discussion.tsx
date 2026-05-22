@@ -24,9 +24,10 @@ type Props = {
   userId: string | null;
   userName: string | null;
   emailVerified: boolean;
+  onChanged?: () => void;
 };
 
-export default function Discussion({ bookId, comments, userId, userName, emailVerified }: Props) {
+export default function Discussion({ bookId, comments, userId, userName, emailVerified, onChanged }: Props) {
   const router = useRouter();
   const supabase = createClient();
   const [replyTo, setReplyTo] = useState<number | null>(null);
@@ -42,7 +43,8 @@ export default function Discussion({ bookId, comments, userId, userName, emailVe
     });
     if (error) return error.message;
     setReplyTo(null);
-    router.refresh();
+    if (onChanged) onChanged();
+    else router.refresh();
     return null;
   }
 
