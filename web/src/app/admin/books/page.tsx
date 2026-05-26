@@ -1,21 +1,32 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Book } from "@/lib/types";
+import Pagination from "@/components/admin/Pagination";
 
 export const dynamic = "force-dynamic";
 
-type SP = { q?: string; type?: string; year?: string };
+const PAGE_SIZE = 10;
+
+type SP = { q?: string; type?: string; year?: string; page?: string };
 
 export default async function AdminBooksPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
   const supabase = await createClient();
 
-  let query = supabase.from("books").select("*").order("created_at", { ascending: false });
+  const page = Math.max(1, Number(sp.page) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  let query = supabase
+    .from("books")
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false });
   if (sp.q) query = query.ilike("title", `%${sp.q}%`);
   if (sp.type) query = query.eq("book_type", sp.type);
   if (sp.year) query = query.eq("published_year", Number(sp.year));
-  const { data } = await query;
+  const { data, count } = await query.range(from, to);
   const books = (data as Book[]) ?? [];
+  const total = count ?? 0;
 
   // 필터 옵션
   const { data: allTypes } = await supabase.from("books").select("book_type");
@@ -30,7 +41,7 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
   return (
     <div className="admin-section">
       <div className="admin-section-head">
-        <h2>책관리 <span className="cnt">{books.length}</span></h2>
+        <h2>책관리 <span className="cnt">{total}</span></h2>
         <Link className="btn" href="/admin/books/new">+ 새 책 등록</Link>
       </div>
 
@@ -51,20 +62,29 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
       {books.length === 0 ? (
         <p className="admin-empty">조건에 맞는 책이 없습니다.</p>
       ) : (
-        <div className="book-grid">
-          {books.map((b) => (
-            <Link key={b.id} href={`/admin/books/${b.id}`} className="book-card">
-              <div className="bc-cover">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={b.cover_path ?? "/covers/book1.svg"} alt={b.title} />
-              </div>
-              <div className="bc-meta">
-                <div className="bc-title">{b.title}</div>
-                <div className="bc-sub">{b.book_type ?? "-"}{b.published_year ? ` · ${b.published_year}` : ""}</div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <>
+          <div className="book-grid">
+            {books.map((b) => (
+              <Link key={b.id} href={`/admin/books/${b.id}`} className="book-card">
+                <div className="bc-cover">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={b.cover_path ?? "/covers/book1.svg"} alt={b.title} />
+                </div>
+                <div className="bc-meta">
+                  <div className="bc-title">{b.title}</div>
+                  <div className="bc-sub">{b.book_type ?? "-"}{b.published_year ? ` · ${b.published_year}` : ""}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <Pagination
+            basePath="/admin/books"
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            params={{ q: sp.q, type: sp.type, year: sp.year }}
+          />
+        </>
       )}
     </div>
   );

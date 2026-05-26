@@ -61,7 +61,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
   const { data: rows } = await supabase
     .from("comments")
-    .select("id,book_id,parent_id,author_id,content,hidden,created_at, profiles(name)")
+    .select("id,book_id,parent_id,author_id,content,hidden,created_at, profiles!comments_author_id_fkey(name)")
     .eq("book_id", bookId)
     .order("created_at", { ascending: true });
 

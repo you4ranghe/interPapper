@@ -942,6 +942,29 @@ body:has(.lib-page) .top-actions .pill-btn .who {
 
 .admin-empty { color: #8a7a5c; font-style: italic; padding: 30px; text-align: center; }
 
+/* 페이지네이션 */
+.admin-pagination {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px;
+  margin-top: 28px; padding: 14px 0;
+}
+.admin-pagination .pg-btn {
+  min-width: 36px; height: 36px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px; font-size: .86rem; color: var(--paper); text-decoration: none;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(226,196,137,.16);
+  transition: background .18s, border-color .18s, transform .18s var(--ease-spring), color .18s;
+}
+.admin-pagination .pg-btn:hover { background: rgba(255,255,255,.1); border-color: var(--gold-soft); transform: translateY(-1px); }
+.admin-pagination .pg-btn.is-active {
+  background: linear-gradient(135deg, var(--gold), #c79a4f); color: #1c130a; border-color: transparent;
+  font-weight: 600; cursor: default;
+}
+.admin-pagination .pg-btn.is-active:hover { transform: none; filter: brightness(1.04); }
+.admin-pagination .pg-btn.nav { padding: 0 14px; color: var(--gold-soft); }
+.admin-pagination .pg-btn.is-disabled {
+  opacity: .35; pointer-events: none; cursor: default;
+}
+.admin-pagination .pg-ellipsis { color: #8a7a5c; padding: 0 4px; font-size: .9rem; letter-spacing: .1em; }
+
 /* 책 카드 그리드 */
 .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
 .book-card { text-decoration: none; color: inherit; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,.04); border: 1px solid rgba(226,196,137,.14); transition: transform .2s var(--ease-spring), border-color .2s; }
@@ -998,4 +1021,167 @@ body:has(.lib-page) .top-actions .pill-btn .who {
   .cover-field { max-width: 220px; }
   .detail-grid { grid-template-columns: 1fr; }
   .admin-table .cell-content { max-width: 180px; }
+}
+
+/* ============================================================
+   관리자 알림 — 우상단 벨 + 중앙 모달
+   ============================================================ */
+.bell-btn {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 999px;
+  background: rgba(18,12,7,.55);
+  border: 1px solid rgba(226,196,137,.32);
+  color: var(--paper);
+  cursor: pointer;
+  backdrop-filter: blur(12px) saturate(140%);
+  transition: transform .22s var(--ease-spring), background .22s, border-color .22s;
+}
+.bell-btn:hover { background: rgba(46,32,18,.8); border-color: var(--gold); transform: translateY(-1px); }
+.bell-btn:active { transform: scale(.95); }
+.bell-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #d4664e, #a8351c);
+  color: #fff;
+  font-size: .68rem; font-weight: 700; letter-spacing: .02em;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid #fdfaf3;
+  box-shadow: 0 2px 6px rgba(168,53,28,.4);
+  animation: bellPulse 1.6s ease-in-out infinite;
+}
+@keyframes bellPulse {
+  0%, 100% { box-shadow: 0 2px 6px rgba(168,53,28,.4), 0 0 0 0 rgba(212,102,78,.5); }
+  50% { box-shadow: 0 2px 6px rgba(168,53,28,.4), 0 0 0 6px rgba(212,102,78,0); }
+}
+
+/* 라이브러리 홈 캡슐 컨테이너 안에서는 톤 맞춤 */
+body:has(.lib-page) .top-actions .bell-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #2a221b;
+  width: 34px; height: 34px;
+}
+body:has(.lib-page) .top-actions .bell-btn:hover {
+  background: color-mix(in oklch, #a85f3e, white 88%);
+  color: #a85f3e;
+  transform: none;
+}
+
+/* 모달 */
+.notif-modal-root {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center;
+  animation: notifFade .2s var(--ease-out);
+}
+@keyframes notifFade { from { opacity: 0; } to { opacity: 1; } }
+.notif-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(8,6,4,.55);
+  backdrop-filter: blur(6px);
+  border: none; cursor: pointer;
+}
+.notif-modal {
+  position: relative;
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(72vh, 720px);
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, rgba(28,20,12,.96), rgba(18,12,7,.96));
+  border: 1px solid rgba(226,196,137,.22);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(226,196,137,.06);
+  color: var(--paper);
+  overflow: hidden;
+  animation: notifPop .28s var(--ease-spring);
+}
+@keyframes notifPop {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+.notif-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(226,196,137,.14);
+}
+.notif-head h3 { margin: 0; font-weight: 500; font-size: 1.1rem; letter-spacing: .04em; color: #f0e6d2; }
+.notif-head .sub { margin: 4px 0 0; font-size: .82rem; color: var(--gold-dim); }
+.notif-actions { display: flex; gap: 8px; align-items: center; }
+.notif-mark-all {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(226,196,137,.22);
+  color: var(--gold-soft);
+  padding: 6px 12px; border-radius: 8px;
+  font-family: inherit; font-size: .78rem;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, color .18s;
+}
+.notif-mark-all:hover:not(:disabled) {
+  background: rgba(226,196,137,.14); border-color: var(--gold-soft); color: var(--paper);
+}
+.notif-mark-all:disabled { opacity: .4; cursor: default; }
+.notif-close {
+  background: none; border: none; color: var(--gold-dim);
+  font-size: 1.5rem; line-height: 1; cursor: pointer;
+  width: 30px; height: 30px; border-radius: 8px;
+  transition: background .18s, color .18s;
+}
+.notif-close:hover { background: rgba(255,255,255,.08); color: var(--paper); }
+
+.notif-list {
+  overflow-y: auto;
+  padding: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(226,196,137,.3) transparent;
+}
+.notif-empty { padding: 40px 20px; text-align: center; color: #8a7a5c; font-style: italic; }
+.notif-item {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 5px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: inherit; font-family: inherit;
+  cursor: pointer;
+  transition: background .18s;
+}
+.notif-item + .notif-item { border-top: 1px solid rgba(226,196,137,.08); }
+.notif-item:hover { background: rgba(255,255,255,.05); }
+.notif-item:disabled { opacity: .6; cursor: default; }
+.ni-row1 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.ni-book { font-size: .9rem; color: #f0e6d2; font-weight: 500; letter-spacing: .02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
+.ni-time { font-size: .72rem; color: #877457; white-space: nowrap; }
+.ni-row2 { display: flex; align-items: center; gap: 8px; }
+.ni-author { font-size: .78rem; color: var(--gold-soft); }
+.ni-tag {
+  font-size: .66rem; color: var(--gold-soft);
+  padding: 1px 7px; border-radius: 10px;
+  background: rgba(226,196,137,.12);
+  border: 1px solid rgba(226,196,137,.2);
+  letter-spacing: .04em;
+}
+.ni-content {
+  font-size: .86rem; color: #d8cbb0; line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 토론에서 알림 클릭 시 하이라이트 */
+.comment.is-highlight {
+  background: linear-gradient(90deg, rgba(226,196,137,.18), rgba(226,196,137,0));
+  border-radius: 10px;
+  padding-left: 14px; margin-left: -14px;
+  animation: hlPulse 2.4s var(--ease-out);
+}
+@keyframes hlPulse {
+  0%   { box-shadow: 0 0 0 2px rgba(226,196,137,.5); }
+  60%  { box-shadow: 0 0 0 2px rgba(226,196,137,.25); }
+  100% { box-shadow: 0 0 0 2px rgba(226,196,137,0); }
+}
+
+@media (max-width: 760px) {
+  .notif-modal { width: calc(100vw - 20px); max-height: 80vh; }
 }

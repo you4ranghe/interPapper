@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { markCommentRead } from "@/app/actions/notifications";
 import type { CommentNode } from "@/lib/types";
 
 function formatKST(iso: string): string {
@@ -24,28 +25,51 @@ type Props = {
   userId: string | null;
   userName: string | null;
   emailVerified: boolean;
+  isAdmin?: boolean;
+  highlightId?: number | null;
   onChanged?: () => void;
 };
 
-export default function Discussion({ bookId, comments, userId, userName, emailVerified, onChanged }: Props) {
+export default function Discussion({
+  bookId, comments, userId, userName, emailVerified, isAdmin = false, highlightId = null, onChanged,
+}: Props) {
   const router = useRouter();
   const supabase = createClient();
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const canComment = Boolean(userId && emailVerified);
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (highlightId != null && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightId, comments]);
 
   async function submit(content: string, parentId: number | null): Promise<string | null> {
     if (!userId) return "로그인이 필요합니다.";
-    const { error } = await supabase.from("comments").insert({
-      book_id: bookId,
-      parent_id: parentId,
-      author_id: userId,
-      content,
-    });
-    if (error) return error.message;
-    setReplyTo(null);
-    if (onChanged) onChanged();
-    else router.refresh();
-    return null;
+    try {
+      const { error } = await supabase.from("comments").insert({
+        book_id: bookId,
+        parent_id: parentId,
+        author_id: userId,
+        content,
+      });
+      if (error) {
+        console.error("[Discussion] comment insert failed:", error);
+        return error.message || "댓글 등록에 실패했습니다.";
+      }
+      // 관리자가 답글을 달면 해당 부모 댓글은 자동으로 읽음 처리.
+      if (isAdmin && parentId != null) {
+        try { await markCommentRead(parentId); } catch (e) { console.warn("[Discussion] markCommentRead skipped:", e); }
+      }
+      setReplyTo(null);
+      if (onChanged) onChanged();
+      else router.refresh();
+      return null;
+    } catch (e) {
+      console.error("[Discussion] submit threw:", e);
+      return e instanceof Error ? e.message : "댓글 등록 중 오류가 발생했습니다.";
+    }
   }
 
   return (
@@ -62,6 +86,8 @@ export default function Discussion({ bookId, comments, userId, userName, emailVe
               replyTo={replyTo}
               setReplyTo={setReplyTo}
               onSubmit={submit}
+              highlightId={highlightId}
+              highlightRef={highlightRef}
             />
           ))
         )}
@@ -89,17 +115,24 @@ export default function Discussion({ bookId, comments, userId, userName, emailVe
 }
 
 function CommentItem({
-  node, canComment, replyTo, setReplyTo, onSubmit,
+  node, canComment, replyTo, setReplyTo, onSubmit, highlightId, highlightRef,
 }: {
   node: CommentNode;
   canComment: boolean;
   replyTo: number | null;
   setReplyTo: (id: number | null) => void;
   onSubmit: (content: string, parentId: number | null) => Promise<string | null>;
+  highlightId: number | null;
+  highlightRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const isAuthorBadge = node.author_name === "저자";
+  const isHighlighted = highlightId === node.id;
   return (
-    <div className="comment">
+    <div
+      className={`comment${isHighlighted ? " is-highlight" : ""}`}
+      ref={isHighlighted ? highlightRef : undefined}
+      id={`comment-${node.id}`}
+    >
       <div className="c-head">
         <span className={`c-nick${isAuthorBadge ? " author" : ""}`}>{node.author_name}</span>
         <span className="c-time">{formatKST(node.created_at)}</span>
@@ -131,6 +164,8 @@ function CommentItem({
               replyTo={replyTo}
               setReplyTo={setReplyTo}
               onSubmit={onSubmit}
+              highlightId={highlightId}
+              highlightRef={highlightRef}
             />
           ))}
         </div>

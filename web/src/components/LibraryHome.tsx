@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Coverflow from "@/components/Coverflow";
 import Discussion from "@/components/Discussion";
 import { createClient } from "@/lib/supabase/client";
@@ -13,9 +14,10 @@ type Props = {
   userId: string | null;
   userName: string | null;
   emailVerified: boolean;
+  isAdmin?: boolean;
 };
 
-export default function LibraryHome({ books, userId, userName, emailVerified }: Props) {
+export default function LibraryHome({ books, userId, userName, emailVerified, isAdmin = false }: Props) {
   const supabase = createClient();
   const [book, setBook] = useState<Book | null>(null);
   const [comments, setComments] = useState<CommentNode[]>([]);
@@ -24,7 +26,9 @@ export default function LibraryHome({ books, userId, userName, emailVerified }: 
   const [showTop, setShowTop] = useState(false);
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string | null>(null); // null = 전체
+  const [highlightId, setHighlightId] = useState<number | null>(null);
   const detailRef = useRef<HTMLDivElement | null>(null);
+  const lastDeepLinkRef = useRef<string>("");
 
   const categories = useMemo(() => {
     const seen = new Set<string>();
@@ -58,12 +62,19 @@ export default function LibraryHome({ books, userId, userName, emailVerified }: 
   );
 
   const selectBook = useCallback(
-    async (id: number) => {
+    async (id: number, opts?: { scrollTo?: "detail" | "discussion" }) => {
       setLoading(true);
       setRevealed(true);
-      // 데이터 로드를 기다리지 않고 reveal/scroll 을 먼저 시작 → 페이드인과 스크롤이 동시 진행
+      const target = opts?.scrollTo ?? "detail";
       requestAnimationFrame(() => {
-        smoothScrollToElement(detailRef.current, 700);
+        if (target === "discussion") {
+          // 토론 섹션은 책 카드 렌더 후 등장하므로 약간 늦춰 스크롤.
+          window.setTimeout(() => {
+            smoothScrollToElement(document.getElementById("discussion"), 700);
+          }, 250);
+        } else {
+          smoothScrollToElement(detailRef.current, 700);
+        }
       });
       const { data } = await supabase.from("books").select("*").eq("id", id).maybeSingle();
       setBook((data as Book) ?? null);
@@ -72,6 +83,22 @@ export default function LibraryHome({ books, userId, userName, emailVerified }: 
     },
     [supabase, loadComments]
   );
+
+  // 알림 모달에서 ?bookId=...&discuss=1&hl=... 로 진입한 경우 자동으로 책을 펼침.
+  const handleDeepLink = useCallback((bid: number, discuss: boolean, hl: number | null) => {
+    const key = `${bid}|${discuss ? "1" : ""}|${hl ?? ""}`;
+    if (lastDeepLinkRef.current === key) return;
+    lastDeepLinkRef.current = key;
+    setHighlightId(hl);
+    selectBook(bid, { scrollTo: discuss ? "discussion" : "detail" });
+  }, [selectBook]);
+
+  // 하이라이트 자동 해제
+  useEffect(() => {
+    if (highlightId == null) return;
+    const id = window.setTimeout(() => setHighlightId(null), 4000);
+    return () => window.clearTimeout(id);
+  }, [highlightId]);
 
   useEffect(() => {
     function onScroll() {
@@ -204,6 +231,8 @@ export default function LibraryHome({ books, userId, userName, emailVerified }: 
                   userId={userId}
                   userName={userName}
                   emailVerified={emailVerified}
+                  isAdmin={isAdmin}
+                  highlightId={highlightId}
                   onChanged={() => loadComments(book.id)}
                 />
               </div>
@@ -221,8 +250,27 @@ export default function LibraryHome({ books, userId, userName, emailVerified }: 
         <span className="arrow">↑</span>
         <span>저자의 다른 책 보기</span>
       </button>
+
+      <Suspense fallback={null}>
+        <DeepLinkReader onDeepLink={handleDeepLink} />
+      </Suspense>
     </div>
   );
+}
+
+function DeepLinkReader({ onDeepLink }: { onDeepLink: (bid: number, discuss: boolean, hl: number | null) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const bookIdRaw = searchParams.get("bookId");
+    if (!bookIdRaw) return;
+    const bid = Number(bookIdRaw);
+    if (!Number.isFinite(bid)) return;
+    const discuss = searchParams.get("discuss") === "1";
+    const hlRaw = searchParams.get("hl");
+    const hl = hlRaw && Number.isFinite(Number(hlRaw)) ? Number(hlRaw) : null;
+    onDeepLink(bid, discuss, hl);
+  }, [searchParams, onDeepLink]);
+  return null;
 }
 
 function countAll(nodes: CommentNode[]): number {

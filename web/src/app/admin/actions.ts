@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSbClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export type ActionState = { error?: string };
 
@@ -112,4 +112,26 @@ export async function setCommentHidden(formData: FormData): Promise<void> {
     await supabase.from("comments").update({ hidden }).eq("id", id);
     revalidatePath("/admin/comments");
   }
+}
+
+/**
+ * 회원 이메일을 관리자가 수동으로 인증 처리 (Supabase 메일이 안 갈 때 임시 우회).
+ * SERVICE_ROLE_KEY로 admin API 호출.
+ */
+export async function confirmMemberEmail(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const userId = String(formData.get("userId") ?? "");
+  if (!userId) return;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY가 설정되지 않았습니다.");
+  }
+  const admin = createSbClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const { error } = await admin.auth.admin.updateUserById(userId, { email_confirm: true });
+  if (error) throw new Error("이메일 인증 처리 실패: " + error.message);
+
+  revalidatePath(`/admin/members/${userId}`);
+  revalidatePath("/admin/members");
 }

@@ -1,7 +1,8 @@
 import type { CommentNode } from "./types";
 
+// comment_reads도 profiles에 FK를 가져 'profiles' 임베드가 모호해짐 → FK 이름을 명시.
 export const COMMENT_SELECT =
-  "id,book_id,parent_id,author_id,content,hidden,created_at, profiles(name)";
+  "id,book_id,parent_id,author_id,content,hidden,created_at, profiles!comments_author_id_fkey(name)";
 
 export type RawComment = {
   id: number;

@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { setCommentHidden } from "@/app/admin/actions";
+import Pagination from "@/components/admin/Pagination";
 
 export const dynamic = "force-dynamic";
 
-type SP = { q?: string; book?: string; hidden?: string };
+const PAGE_SIZE = 10;
+
+type SP = { q?: string; book?: string; hidden?: string; page?: string };
 
 type Row = {
   id: number;
@@ -28,17 +31,22 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
   const sp = await searchParams;
   const supabase = await createClient();
 
+  const page = Math.max(1, Number(sp.page) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   let query = supabase
     .from("comments")
-    .select("id,content,hidden,created_at,book_id, profiles(name), books(title)")
+    .select("id,content,hidden,created_at,book_id, profiles!comments_author_id_fkey(name), books(title)", { count: "exact" })
     .order("created_at", { ascending: false });
   if (sp.q) query = query.ilike("content", `%${sp.q}%`);
   if (sp.book) query = query.eq("book_id", Number(sp.book));
   if (sp.hidden === "hidden") query = query.eq("hidden", true);
   else if (sp.hidden === "visible") query = query.eq("hidden", false);
 
-  const { data } = await query;
+  const { data, count } = await query.range(from, to);
   const rows = (data as unknown as Row[]) ?? [];
+  const total = count ?? 0;
 
   const { data: bookList } = await supabase.from("books").select("id,title").order("title");
   const books = (bookList as { id: number; title: string }[]) ?? [];
@@ -46,7 +54,7 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
   return (
     <div className="admin-section">
       <div className="admin-section-head">
-        <h2>댓글관리 <span className="cnt">{rows.length}</span></h2>
+        <h2>댓글관리 <span className="cnt">{total}</span></h2>
       </div>
 
       <form className="filter-bar" method="get">
@@ -66,29 +74,38 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
       {rows.length === 0 ? (
         <p className="admin-empty">조건에 맞는 댓글이 없습니다.</p>
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr><th>책</th><th>작성자</th><th>내용</th><th>작성일</th><th>상태</th><th></th></tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className={r.hidden ? "is-hidden" : ""}>
-                <td>{r.books?.title ?? "-"}</td>
-                <td>{r.profiles?.name ?? "익명"}</td>
-                <td className="cell-content">{r.content}</td>
-                <td className="nowrap">{fmt(r.created_at)}</td>
-                <td>{r.hidden ? <span className="badge off">숨김</span> : <span className="badge on">노출</span>}</td>
-                <td>
-                  <form action={setCommentHidden}>
-                    <input type="hidden" name="id" value={r.id} />
-                    <input type="hidden" name="hidden" value={(!r.hidden).toString()} />
-                    <button className="btn ghost sm" type="submit">{r.hidden ? "노출" : "숨김"}</button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <>
+          <table className="admin-table">
+            <thead>
+              <tr><th>책</th><th>작성자</th><th>내용</th><th>작성일</th><th>상태</th><th></th></tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className={r.hidden ? "is-hidden" : ""}>
+                  <td>{r.books?.title ?? "-"}</td>
+                  <td>{r.profiles?.name ?? "익명"}</td>
+                  <td className="cell-content">{r.content}</td>
+                  <td className="nowrap">{fmt(r.created_at)}</td>
+                  <td>{r.hidden ? <span className="badge off">숨김</span> : <span className="badge on">노출</span>}</td>
+                  <td>
+                    <form action={setCommentHidden}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <input type="hidden" name="hidden" value={(!r.hidden).toString()} />
+                      <button className="btn ghost sm" type="submit">{r.hidden ? "노출" : "숨김"}</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <Pagination
+            basePath="/admin/comments"
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            params={{ q: sp.q, book: sp.book, hidden: sp.hidden }}
+          />
+        </>
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
 import LibraryHome from "@/components/LibraryHome";
 import LogoutButton from "@/components/LogoutButton";
+import AdminNotifications from "@/components/AdminNotifications";
 import type { BookSummary } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ export default async function Home() {
             <span className="pill-btn" style={{ pointerEvents: "none" }}>
               <span className="who">{session.profile?.name || session.email}</span>님
             </span>
+            {session.isAdmin && <AdminNotifications />}
             {session.isAdmin && <Link className="pill-btn solid" href="/admin">서재관리</Link>}
             <LogoutButton />
           </>
@@ -46,6 +48,7 @@ export default async function Home() {
         userId={session.userId}
         userName={session.profile?.name ?? null}
         emailVerified={session.emailVerified}
+        isAdmin={session.isAdmin}
       />
     </>
   );
