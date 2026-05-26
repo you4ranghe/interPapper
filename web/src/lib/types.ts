@@ -9,7 +9,7 @@ export type Book = {
   created_at: string;
 };
 
-export type BookSummary = Pick<Book, "id" | "title" | "cover_path">;
+export type BookSummary = Pick<Book, "id" | "title" | "cover_path" | "book_type">;
 
 export type Profile = {
   id: string;

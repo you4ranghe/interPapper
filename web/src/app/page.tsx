@@ -15,7 +15,7 @@ export default async function Home() {
     const supabase = await createClient();
     const { data } = await supabase
       .from("books")
-      .select("id,title,cover_path")
+      .select("id,title,cover_path,book_type")
       .order("created_at", { ascending: false });
     books = (data as BookSummary[]) ?? [];
   } catch {

@@ -17,9 +17,11 @@ function posClass(offset: number): string {
 export default function Coverflow({
   books,
   onSelect,
+  emptyMessage,
 }: {
   books: BookSummary[];
   onSelect: (id: number) => void;
+  emptyMessage?: string;
 }) {
   const n = books.length;
   const [pointer, setPointer] = useState(n);
@@ -31,6 +33,16 @@ export default function Coverflow({
     const t = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(t);
   }, []);
+
+  // books 자체가 바뀌면(탭 필터 등) 첫 책으로 리셋. n=0 이면 무시.
+  const booksRef = useRef(books);
+  useEffect(() => {
+    if (booksRef.current !== books && n > 0) {
+      booksRef.current = books;
+      setPointer(n);
+      setNoAnim(true);
+    }
+  }, [books, n]);
 
   // 순환 범위 [n, 2n) 으로 pointer 정규화 (애니메이션 없이)
   const scheduleRebase = useCallback(() => {
@@ -78,8 +90,9 @@ export default function Coverflow({
   );
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
+    // setPointerCapture를 cf-stage에 호출하면 자식 <article>의 click 이벤트가
+    // 디스패치되지 않아 책 클릭 → 펼치기 흐름이 끊긴다. capture 없이도 stage 내부 드래그는 정상.
     dragRef.current = { active: true, startX: e.clientX, lastSteps: 0, moved: false };
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   }, []);
 
   const onPointerMove = useCallback(
@@ -97,9 +110,8 @@ export default function Coverflow({
     [stepBy]
   );
 
-  const endDrag = useCallback((e: React.PointerEvent) => {
+  const endDrag = useCallback(() => {
     dragRef.current.active = false;
-    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
   }, []);
 
   useEffect(() => {
@@ -115,11 +127,17 @@ export default function Coverflow({
     return (
       <div className="coverflow">
         <div className="cf-empty">
-          아직 등록된 책이 없습니다.
-          <br />
-          <span style={{ fontSize: ".85rem", color: "#9c855a" }}>
-            관리자가 ‘서재관리’에서 책을 등록하면 이곳에 진열됩니다.
-          </span>
+          {emptyMessage ? (
+            emptyMessage
+          ) : (
+            <>
+              아직 등록된 책이 없습니다.
+              <br />
+              <span style={{ fontSize: ".85rem", color: "#9c855a" }}>
+                관리자가 ‘서재관리’에서 책을 등록하면 이곳에 진열됩니다.
+              </span>
+            </>
+          )}
         </div>
       </div>
     );
@@ -144,6 +162,7 @@ export default function Coverflow({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
+        onPointerLeave={endDrag}
       >
         {items.map(({ key, book }) => {
           const offset = key - pointer;
@@ -186,16 +205,27 @@ export default function Coverflow({
         </div>
       </div>
 
-      <div className="cf-dots">
-        {books.map((b, i) => (
-          <button
-            key={b.id}
-            type="button"
-            className={`dot${i === mod(pointer, n) ? " active" : ""}`}
-            aria-label={`${i + 1}번째 책`}
-            onClick={() => moveTo(n + i)}
-          />
-        ))}
+      <div
+        className="cf-scroll"
+        role="progressbar"
+        aria-valuemin={1}
+        aria-valuemax={n}
+        aria-valuenow={mod(pointer, n) + 1}
+        aria-label="책 위치"
+        onClick={(e) => {
+          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          const targetIdx = Math.min(n - 1, Math.floor(ratio * n));
+          moveTo(n + targetIdx);
+        }}
+      >
+        <div
+          className="cf-scroll-thumb"
+          style={{
+            width: `${Math.max(10, 100 / n)}%`,
+            left: `${(mod(pointer, n) / Math.max(1, n - 1)) * (100 - Math.max(10, 100 / n))}%`,
+          }}
+        />
       </div>
     </div>
   );
