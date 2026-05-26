@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { getUnreadSnapshot, markCommentRead, markCommentsRead } from "@/app/actions/notifications";
 import type { UnreadComment } from "@/lib/notifications";
@@ -30,7 +31,10 @@ export default function AdminNotifications() {
   const [items, setItems] = useState<UnreadComment[]>([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const mountedRef = useRef(true);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const refresh = useCallback(async () => {
     const snap = await getUnreadSnapshot();
@@ -94,7 +98,7 @@ export default function AdminNotifications() {
         {count > 0 && <span className="bell-badge">{count > 99 ? "99+" : count}</span>}
       </button>
 
-      {open && (
+      {open && mounted && createPortal(
         <div className="notif-modal-root" role="dialog" aria-modal="true" aria-label="새 댓글 알림">
           <button type="button" className="notif-backdrop" aria-label="닫기" onClick={() => setOpen(false)} />
           <div className="notif-modal">
@@ -113,7 +117,10 @@ export default function AdminNotifications() {
                   모두 읽음
                 </button>
                 <button type="button" className="notif-close" aria-label="닫기" onClick={() => setOpen(false)}>
-                  ×
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
                 </button>
               </div>
             </header>
@@ -144,7 +151,8 @@ export default function AdminNotifications() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

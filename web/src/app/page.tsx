@@ -25,22 +25,28 @@ export default async function Home() {
 
   return (
     <>
-      <div className="top-actions">
-        {session.userId ? (
-          <>
-            <span className="pill-btn" style={{ pointerEvents: "none" }}>
-              <span className="who">{session.profile?.name || session.email}</span>님
-            </span>
-            {session.isAdmin && <AdminNotifications />}
-            {session.isAdmin && <Link className="pill-btn solid" href="/admin">서재관리</Link>}
-            <LogoutButton />
-          </>
-        ) : (
-          <>
-            <Link className="pill-btn" href="/login">로그인</Link>
-            <Link className="pill-btn solid" href="/signup">회원가입</Link>
-          </>
+      <div className="top-bar">
+        {session.userId && session.isAdmin && (
+          <div className="admin-actions">
+            <Link className="pill-btn solid" href="/admin">서재관리</Link>
+            <AdminNotifications />
+          </div>
         )}
+        <div className="top-actions">
+          {session.userId ? (
+            <>
+              <span className="pill-btn" style={{ pointerEvents: "none" }}>
+                <span className="who">{session.profile?.name || session.email}</span>님
+              </span>
+              <LogoutButton />
+            </>
+          ) : (
+            <>
+              <Link className="pill-btn" href="/login">로그인</Link>
+              <Link className="pill-btn solid" href="/signup">회원가입</Link>
+            </>
+          )}
+        </div>
       </div>
 
       <LibraryHome

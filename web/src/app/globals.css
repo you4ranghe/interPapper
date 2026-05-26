@@ -175,7 +175,10 @@ body::after {
 .lib-search-status.miss { color: #b6a47f; font-style: italic; text-transform: none; letter-spacing: .03em; }
 
 /* 헤더 우상단 인증/관리 영역 */
+.top-bar { position: fixed; top: clamp(14px, 2.5vh, 26px); right: clamp(14px, 2.5vw, 32px); z-index: 80; display: flex; gap: 12px; align-items: center; }
+.top-bar .top-actions { position: static; top: auto; right: auto; z-index: auto; }
 .top-actions { position: fixed; top: clamp(14px, 2.5vh, 26px); right: clamp(14px, 2.5vw, 32px); z-index: 80; display: flex; gap: 10px; align-items: center; }
+.admin-actions { display: flex; gap: 10px; align-items: center; }
 .pill-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 22px; font-family: inherit; font-size: .84rem; letter-spacing: .03em; cursor: pointer; text-decoration: none; color: var(--paper); background: rgba(18,12,7,.55); backdrop-filter: blur(12px) saturate(140%); border: 1px solid rgba(226,196,137,.32); transition: transform .22s var(--ease-spring), background .22s, border-color .22s; }
 .pill-btn:hover { background: rgba(46,32,18,.8); border-color: var(--gold); transform: translateY(-2px); }
 .pill-btn.solid { background: linear-gradient(135deg, var(--gold), #c79a4f); color: #1c130a; border: none; font-weight: 600; }
@@ -353,7 +356,7 @@ body:has(.lib-page)::after { display: none; }
 }
 
 /* ===== 카테고리 탭 (animated sliding underline) ===== */
-.lib-page .lib-tabs-wrap { padding: 18px 16px 4px; }
+.lib-page .lib-tabs-wrap { padding: 14px 16px 0; }
 .lib-page .lib-tabs {
   background: transparent;
   backdrop-filter: none;
@@ -393,12 +396,18 @@ body:has(.lib-page)::after { display: none; }
 
 /* ===== Coverflow ===== */
 .lib-page .coverflow {
-  min-height: 540px;
+  min-height: 520px;
+  margin-top: -12px;
   perspective: 2400px;
   perspective-origin: 50% 44%;
 }
-.lib-page .cf-stage { height: 480px; }
-.lib-page .cf-item { margin-top: -16vh; }
+.lib-page .cf-stage { height: 520px; }
+.lib-page .cf-item {
+  width: clamp(220px, 24vw, 320px);
+  margin-left: calc(clamp(220px, 24vw, 320px) / -2);
+  margin-top: -14vh;
+}
+.lib-page .cf-caption { bottom: clamp(10px, 1.6vh, 20px); }
 .lib-page .cf-item img {
   border: none;
   border-radius: var(--radius-sm);
@@ -826,7 +835,8 @@ body:has(.lib-page)::after { display: none; }
 }
 
 /* ===== 상단 우측 인증/관리 — segmented capsule 컨테이너 ===== */
-body:has(.lib-page) .top-actions {
+body:has(.lib-page) .top-actions,
+body:has(.lib-page) .admin-actions {
   gap: 2px;
   padding: 4px;
   border: 1px solid transparent;
@@ -841,7 +851,8 @@ body:has(.lib-page) .top-actions {
     inset 0 1px 0 rgba(255,255,255,.82),
     0 10px 26px -12px rgba(42, 34, 27, .22);
 }
-body:has(.lib-page) .top-actions .pill-btn {
+body:has(.lib-page) .top-actions .pill-btn,
+body:has(.lib-page) .admin-actions .pill-btn {
   background: transparent;
   border: none;
   box-shadow: none;
@@ -856,12 +867,14 @@ body:has(.lib-page) .top-actions .pill-btn {
     color .25s var(--ease-out),
     transform .25s var(--ease-spring);
 }
-body:has(.lib-page) .top-actions .pill-btn:hover {
+body:has(.lib-page) .top-actions .pill-btn:hover,
+body:has(.lib-page) .admin-actions .pill-btn:hover {
   background: color-mix(in oklch, #a85f3e, white 88%);
   color: #a85f3e;
   transform: none;
 }
-body:has(.lib-page) .top-actions .pill-btn.solid {
+body:has(.lib-page) .top-actions .pill-btn.solid,
+body:has(.lib-page) .admin-actions .pill-btn.solid {
   background:
     linear-gradient(135deg, color-mix(in oklch, #a85f3e, white 8%) 0%, #a85f3e 100%);
   color: #fdfaf3;
@@ -869,7 +882,8 @@ body:has(.lib-page) .top-actions .pill-btn.solid {
     inset 0 1px 0 rgba(255,255,255,.22),
     0 4px 10px -4px color-mix(in oklch, #a85f3e, transparent 55%);
 }
-body:has(.lib-page) .top-actions .pill-btn.solid:hover {
+body:has(.lib-page) .top-actions .pill-btn.solid:hover,
+body:has(.lib-page) .admin-actions .pill-btn.solid:hover {
   background:
     linear-gradient(135deg, #a85f3e 0%, color-mix(in oklch, #a85f3e, black 8%) 100%);
   color: #fdfaf3;
@@ -877,7 +891,8 @@ body:has(.lib-page) .top-actions .pill-btn.solid:hover {
     inset 0 1px 0 rgba(255,255,255,.22),
     0 6px 14px -4px color-mix(in oklch, #a85f3e, transparent 45%);
 }
-body:has(.lib-page) .top-actions .pill-btn:active { transform: scale(.97); }
+body:has(.lib-page) .top-actions .pill-btn:active,
+body:has(.lib-page) .admin-actions .pill-btn:active { transform: scale(.97); }
 body:has(.lib-page) .top-actions .pill-btn .who {
   color: color-mix(in oklch, #2a221b, transparent 45%);
 }
@@ -1057,22 +1072,25 @@ body:has(.lib-page) .top-actions .pill-btn .who {
 }
 
 /* 라이브러리 홈 캡슐 컨테이너 안에서는 톤 맞춤 */
-body:has(.lib-page) .top-actions .bell-btn {
+body:has(.lib-page) .top-actions .bell-btn,
+body:has(.lib-page) .admin-actions .bell-btn {
   background: transparent;
   border: 1px solid transparent;
   color: #2a221b;
   width: 34px; height: 34px;
 }
-body:has(.lib-page) .top-actions .bell-btn:hover {
+body:has(.lib-page) .top-actions .bell-btn:hover,
+body:has(.lib-page) .admin-actions .bell-btn:hover {
   background: color-mix(in oklch, #a85f3e, white 88%);
   color: #a85f3e;
   transform: none;
 }
 
-/* 모달 */
+/* 모달 — 화면 중앙 정렬 */
 .notif-modal-root {
   position: fixed; inset: 0; z-index: 200;
   display: grid; place-items: center;
+  padding: 24px;
   animation: notifFade .2s var(--ease-out);
 }
 @keyframes notifFade { from { opacity: 0; } to { opacity: 1; } }
@@ -1084,22 +1102,23 @@ body:has(.lib-page) .top-actions .bell-btn:hover {
 }
 .notif-modal {
   position: relative;
-  width: min(560px, calc(100vw - 32px));
-  max-height: min(72vh, 720px);
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(78vh, 720px);
   display: flex; flex-direction: column;
-  background: linear-gradient(180deg, rgba(28,20,12,.96), rgba(18,12,7,.96));
-  border: 1px solid rgba(226,196,137,.22);
+  background: linear-gradient(180deg, rgba(28,20,12,.97), rgba(18,12,7,.97));
+  border: 1px solid rgba(226,196,137,.24);
   border-radius: 18px;
-  box-shadow: 0 30px 80px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(226,196,137,.06);
+  box-shadow: 0 40px 90px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(226,196,137,.05);
   color: var(--paper);
   overflow: hidden;
   animation: notifPop .28s var(--ease-spring);
 }
 @keyframes notifPop {
-  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  from { opacity: 0; transform: translateY(10px) scale(.97); }
   to   { opacity: 1; transform: none; }
 }
 .notif-head {
+  flex: 0 0 auto;
   display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
   padding: 18px 20px 14px;
   border-bottom: 1px solid rgba(226,196,137,.14);
@@ -1121,19 +1140,40 @@ body:has(.lib-page) .top-actions .bell-btn:hover {
 }
 .notif-mark-all:disabled { opacity: .4; cursor: default; }
 .notif-close {
-  background: none; border: none; color: var(--gold-dim);
-  font-size: 1.5rem; line-height: 1; cursor: pointer;
-  width: 30px; height: 30px; border-radius: 8px;
-  transition: background .18s, color .18s;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(226,196,137,.28);
+  color: var(--gold-soft);
+  cursor: pointer;
+  width: 32px; height: 32px; border-radius: 999px;
+  transition: background .18s, color .18s, border-color .18s, transform .18s;
 }
-.notif-close:hover { background: rgba(255,255,255,.08); color: var(--paper); }
+.notif-close:hover {
+  background: rgba(212,102,78,.18);
+  border-color: rgba(212,102,78,.55);
+  color: #f5eede;
+  transform: rotate(90deg);
+}
+.notif-close:active { transform: rotate(90deg) scale(.92); }
 
 .notif-list {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 6px;
   scrollbar-width: thin;
   scrollbar-color: rgba(226,196,137,.3) transparent;
 }
+.notif-list::-webkit-scrollbar { width: 8px; }
+.notif-list::-webkit-scrollbar-track { background: transparent; }
+.notif-list::-webkit-scrollbar-thumb {
+  background: rgba(226,196,137,.22);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.notif-list::-webkit-scrollbar-thumb:hover { background: rgba(226,196,137,.4); background-clip: padding-box; }
 .notif-empty { padding: 40px 20px; text-align: center; color: #8a7a5c; font-style: italic; }
 .notif-item {
   width: 100%;
@@ -1183,5 +1223,6 @@ body:has(.lib-page) .top-actions .bell-btn:hover {
 }
 
 @media (max-width: 760px) {
-  .notif-modal { width: calc(100vw - 20px); max-height: 80vh; }
+  .notif-modal-root { padding: 16px; }
+  .notif-modal { width: 100%; max-height: 82vh; }
 }

@@ -63,25 +63,42 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
 
   const selectBook = useCallback(
     async (id: number, opts?: { scrollTo?: "detail" | "discussion" }) => {
+      // 낙관적 렌더: 목록에 이미 있는 정보로 카드를 즉시 보여주고 상세는 뒤따라 채움.
+      const summary = books.find((b) => b.id === id);
+      if (summary) {
+        setBook({
+          id: summary.id,
+          title: summary.title,
+          cover_path: summary.cover_path,
+          book_type: summary.book_type,
+          introduction: "",
+          author_note: "",
+          published_year: null,
+          created_at: "",
+        });
+      }
+      setComments([]);
       setLoading(true);
       setRevealed(true);
       const target = opts?.scrollTo ?? "detail";
       requestAnimationFrame(() => {
         if (target === "discussion") {
-          // 토론 섹션은 책 카드 렌더 후 등장하므로 약간 늦춰 스크롤.
           window.setTimeout(() => {
-            smoothScrollToElement(document.getElementById("discussion"), 700);
-          }, 250);
+            smoothScrollToElement(document.getElementById("discussion"), 420);
+          }, 200);
         } else {
-          smoothScrollToElement(detailRef.current, 700);
+          smoothScrollToElement(detailRef.current, 420);
         }
       });
-      const { data } = await supabase.from("books").select("*").eq("id", id).maybeSingle();
-      setBook((data as Book) ?? null);
-      await loadComments(id);
+      // 책 상세와 댓글을 병렬로 fetch.
+      const [detail] = await Promise.all([
+        supabase.from("books").select("*").eq("id", id).maybeSingle(),
+        loadComments(id),
+      ]);
+      setBook((detail.data as Book) ?? null);
       setLoading(false);
     },
-    [supabase, loadComments]
+    [books, supabase, loadComments]
   );
 
   // 알림 모달에서 ?bookId=...&discuss=1&hl=... 로 진입한 경우 자동으로 책을 펼침.
