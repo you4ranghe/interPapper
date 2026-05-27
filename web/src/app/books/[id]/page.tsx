@@ -71,7 +71,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   return (
     <div className="detail-page">
       <div className="top-actions">
-        <Link className="pill-btn" href="/">← 서재로</Link>
+        <Link className="pill-btn" href="/library">← 서재로</Link>
         {session.userId ? (
           <>
             {session.isAdmin && <Link className="pill-btn solid" href="/admin">서재관리</Link>}

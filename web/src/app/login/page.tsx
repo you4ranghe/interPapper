@@ -23,7 +23,7 @@ export default function LoginPage() {
       setErr(error.message);
       return;
     }
-    router.push("/");
+    router.push("/library");
     router.refresh();
   }
 

@@ -8,13 +8,13 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-  if (!session.isAdmin) redirect("/");
+  if (!session.isAdmin) redirect("/library");
 
   return (
     <div className="admin">
       <header className="admin-header">
         <div className="admin-brand">
-          <Link href="/">Interpaper</Link>
+          <Link href="/library">Interpaper</Link>
           <span className="sep">·</span>
           <span className="label">서재관리</span>
         </div>

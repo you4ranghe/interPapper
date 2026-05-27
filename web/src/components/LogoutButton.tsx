@@ -8,7 +8,7 @@ export default function LogoutButton() {
   async function onClick() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/library");
     router.refresh();
   }
   return (

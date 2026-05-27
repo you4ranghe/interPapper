@@ -72,7 +72,7 @@ export default function AdminNotifications() {
     setCount((n) => Math.max(0, n - 1));
     setOpen(false);
     setLoading(false);
-    router.push(`/?bookId=${c.book_id}&discuss=1&hl=${c.id}#discussion`);
+    router.push(`/library?bookId=${c.book_id}&discuss=1&hl=${c.id}#discussion`);
     router.refresh();
   }
 

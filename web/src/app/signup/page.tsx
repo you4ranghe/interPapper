@@ -50,7 +50,7 @@ export default function SignupPage() {
           <div className="auth-sent">
             <p><b>{email}</b> 으로 인증 메일을 보냈습니다.</p>
             <p className="muted">메일의 링크를 클릭해 인증을 마치면 댓글을 작성할 수 있습니다.</p>
-            <Link className="pill-btn solid" href="/">홈으로</Link>
+            <Link className="pill-btn solid" href="/library">서재로</Link>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="auth-form">
