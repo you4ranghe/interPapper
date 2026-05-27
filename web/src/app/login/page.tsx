@@ -30,7 +30,7 @@ export default function LoginPage() {
   return (
     <main className="auth-wrap">
       <div className="auth-card">
-        <p className="eyebrow">Welcome back</p>
+        <p className="eyebrow">어서오세요 반갑습니다.</p>
         <h1>로그인</h1>
         <form onSubmit={onSubmit} className="auth-form">
           <label>이메일<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
@@ -39,6 +39,7 @@ export default function LoginPage() {
           <button className="pill-btn solid" type="submit" disabled={loading}>
             {loading ? "로그인 중…" : "로그인"}
           </button>
+          <p className="muted center"><Link href="/forgot-password">비밀번호를 잊으셨나요?</Link></p>
           <p className="muted center">아직 회원이 아니신가요? <Link href="/signup">회원가입</Link></p>
         </form>
       </div>

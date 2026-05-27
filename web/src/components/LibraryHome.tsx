@@ -29,6 +29,8 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
   const [highlightId, setHighlightId] = useState<number | null>(null);
   const detailRef = useRef<HTMLDivElement | null>(null);
   const lastDeepLinkRef = useRef<string>("");
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const activeTabRef = useRef<HTMLButtonElement | null>(null);
 
   const categories = useMemo(() => {
     const seen = new Set<string>();
@@ -125,6 +127,20 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
     return () => window.removeEventListener("scroll", onScroll);
   }, [revealed]);
 
+  // 활성 탭이 가로 스크롤 영역 밖에 있으면 중앙으로 부드럽게 스크롤
+  useEffect(() => {
+    const tab = activeTabRef.current;
+    const wrap = tabsRef.current;
+    if (!tab || !wrap) return;
+    const tabRect = tab.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    const isOff = tabRect.left < wrapRect.left + 24 || tabRect.right > wrapRect.right - 24;
+    if (isOff) {
+      const target = tab.offsetLeft - wrap.clientWidth / 2 + tab.clientWidth / 2;
+      wrap.scrollTo({ left: target, behavior: "smooth" });
+    }
+  }, [activeTab]);
+
   function backToTop() {
     smoothScrollTo(0, 850);
   }
@@ -136,13 +152,13 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
           <p className="eyebrow">Interpaper Library</p>
           <h1>아버지의 서재</h1>
           <div className="divider" />
-          <p>가운데 책을 클릭하면, 책 뒤의 이야기가 아래로 펼쳐집니다.</p>
         </header>
         <div className="lib-tabs-wrap">
-          <div className="lib-tabs" role="tablist" aria-label="책 카테고리">
+          <div className="lib-tabs" role="tablist" aria-label="책 카테고리" ref={tabsRef}>
             <button
               type="button"
               role="tab"
+              ref={activeTab === null ? activeTabRef : null}
               className={`lib-tab all${activeTab === null ? " active" : ""}`}
               aria-selected={activeTab === null}
               onClick={() => setActiveTab(null)}
@@ -154,6 +170,7 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
                 key={cat}
                 type="button"
                 role="tab"
+                ref={activeTab === cat ? activeTabRef : null}
                 className={`lib-tab${activeTab === cat ? " active" : ""}`}
                 aria-selected={activeTab === cat}
                 onClick={() => setActiveTab(cat)}
