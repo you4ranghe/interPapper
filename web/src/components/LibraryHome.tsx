@@ -141,7 +141,7 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
 
   return (
     <div className="lib-page">
-      <section className="hero" id="top">
+      <section className={`hero${gridView ? " is-grid" : ""}`} id="top">
         <header className="site-header">
           <p className="eyebrow">Interpaper Library</p>
           <h1>아버지의 서재</h1>
@@ -361,7 +361,7 @@ function BookGridCard({ book, onOpen }: { book: BookListItem; onOpen: () => void
     >
       <div className="lib-card-cover">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={book.cover_path ?? "/covers/book1.svg"} alt={`${book.title} 표지`} loading="lazy" />
+        <img src={book.cover_path ?? "/covers/book1.svg"} alt={`${book.title} 표지`} loading="lazy" decoding="async" />
       </div>
       <div className="lib-card-body">
         {book.book_type && <p className="lib-card-kicker">{book.book_type}</p>}

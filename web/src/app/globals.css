@@ -950,6 +950,8 @@ body:has(.landing-section) {
    coverflow 가 flex:1 + min-height:0 으로 남는 공간을 흡수/축소해 항상 한 화면에 맞춘다.
    '클릭하여 펼치기' 후 나타나는 reveal-wrap 은 hero 의 형제라 정상적으로 스크롤된다. */
 .lib-page .hero { height: 100dvh; overflow: hidden; }
+/* 전체보기(그리드) 모드에선 책 목록이 길어질 수 있으니 hero 높이 고정/넘침잘림을 해제해 스크롤되게 한다 */
+.lib-page .hero.is-grid { height: auto; min-height: 100dvh; overflow: visible; }
 .lib-page .site-header { padding-top: clamp(54px, 9vh, 96px); }
 
 /* 메인 진입 시 부드러운 staggered fade-up (supanova spring) */
