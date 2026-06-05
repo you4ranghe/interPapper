@@ -4,21 +4,21 @@ import { getSession } from "@/lib/auth";
 import LibraryHome from "@/components/LibraryHome";
 import LogoutButton from "@/components/LogoutButton";
 import AdminNotifications from "@/components/AdminNotifications";
-import type { BookSummary } from "@/lib/types";
+import type { BookListItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const session = await getSession();
 
-  let books: BookSummary[] = [];
+  let books: BookListItem[] = [];
   try {
     const supabase = await createClient();
     const { data } = await supabase
       .from("books")
-      .select("id,title,cover_path,book_type")
+      .select("id,title,cover_path,book_type,introduction")
       .order("created_at", { ascending: false });
-    books = (data as BookSummary[]) ?? [];
+    books = (data as BookListItem[]) ?? [];
   } catch {
     books = [];
   }

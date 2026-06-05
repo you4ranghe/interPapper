@@ -11,6 +11,9 @@ export type Book = {
 
 export type BookSummary = Pick<Book, "id" | "title" | "cover_path" | "book_type">;
 
+// 전체보기(그리드)용 — 요약 정보 + 소개 3줄 미리보기를 위한 introduction 포함
+export type BookListItem = BookSummary & Pick<Book, "introduction">;
+
 export type Profile = {
   id: string;
   email: string | null;

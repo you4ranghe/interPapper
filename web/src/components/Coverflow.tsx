@@ -199,7 +199,19 @@ export default function Coverflow({
       </button>
 
       <div className="cf-caption">
-        <div className="pill">
+        <div
+          className="pill"
+          role="button"
+          tabIndex={0}
+          aria-label={`${active.title} 펼치기`}
+          onClick={() => openBook(active.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openBook(active.id);
+            }
+          }}
+        >
           <span className="t">{active.title}</span>
           <span className="s">클릭하여 펼치기 · {mod(pointer, n) + 1} / {n}</span>
         </div>

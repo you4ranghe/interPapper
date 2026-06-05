@@ -4,13 +4,14 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useSearchParams } from "next/navigation";
 import Coverflow from "@/components/Coverflow";
 import Discussion from "@/components/Discussion";
+import AuthorNote from "@/components/AuthorNote";
 import { createClient } from "@/lib/supabase/client";
 import { buildCommentTree, COMMENT_SELECT, type RawComment } from "@/lib/comments";
-import { smoothScrollTo, smoothScrollToElement } from "@/lib/smoothScroll";
-import type { Book, BookSummary, CommentNode } from "@/lib/types";
+import { smoothScrollToElement } from "@/lib/smoothScroll";
+import type { Book, BookListItem, CommentNode } from "@/lib/types";
 
 type Props = {
-  books: BookSummary[];
+  books: BookListItem[];
   userId: string | null;
   userName: string | null;
   emailVerified: boolean;
@@ -23,9 +24,9 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
   const [comments, setComments] = useState<CommentNode[]>([]);
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showTop, setShowTop] = useState(false);
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string | null>(null); // null = 전체
+  const [gridView, setGridView] = useState(false); // false = 표지 넘기기(coverflow), true = 전체보기(그리드)
   const [highlightId, setHighlightId] = useState<number | null>(null);
   const detailRef = useRef<HTMLDivElement | null>(null);
   const lastDeepLinkRef = useRef<string>("");
@@ -82,16 +83,21 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
       setComments([]);
       setLoading(true);
       setRevealed(true);
+      // 펼침 영역이 마운트된 뒤 스크롤해야 하므로, 대상 요소가 생길 때까지 프레임마다 재시도.
       const target = opts?.scrollTo ?? "detail";
-      requestAnimationFrame(() => {
-        if (target === "discussion") {
-          window.setTimeout(() => {
-            smoothScrollToElement(document.getElementById("discussion"), 420);
-          }, 200);
-        } else {
-          smoothScrollToElement(detailRef.current, 420);
+      let tries = 0;
+      const tryScroll = () => {
+        const el =
+          target === "discussion"
+            ? document.getElementById("discussion")
+            : detailRef.current;
+        if (el) {
+          smoothScrollToElement(el, 420);
+          return;
         }
-      });
+        if (tries++ < 40) requestAnimationFrame(tryScroll);
+      };
+      requestAnimationFrame(tryScroll);
       // 책 상세와 댓글을 병렬로 fetch.
       const [detail] = await Promise.all([
         supabase.from("books").select("*").eq("id", id).maybeSingle(),
@@ -119,14 +125,6 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
     return () => window.clearTimeout(id);
   }, [highlightId]);
 
-  useEffect(() => {
-    function onScroll() {
-      setShowTop(revealed && window.scrollY > window.innerHeight * 0.6);
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [revealed]);
-
   // 활성 탭이 가로 스크롤 영역 밖에 있으면 중앙으로 부드럽게 스크롤
   useEffect(() => {
     const tab = activeTabRef.current;
@@ -140,10 +138,6 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
       wrap.scrollTo({ left: target, behavior: "smooth" });
     }
   }, [activeTab]);
-
-  function backToTop() {
-    smoothScrollTo(0, 850);
-  }
 
   return (
     <div className="lib-page">
@@ -181,11 +175,36 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
           </div>
         </div>
 
-        <Coverflow
-          books={filteredBooks}
-          onSelect={selectBook}
-          emptyMessage={query.trim() ? "일치하는 책이 없습니다." : undefined}
-        />
+        <div className="lib-viewbar">
+          <button
+            type="button"
+            className={`lib-viewtoggle${gridView ? " on" : ""}`}
+            aria-pressed={gridView}
+            onClick={() => setGridView((v) => !v)}
+          >
+            {gridView ? "표지로 넘겨보기" : "전체보기"}
+          </button>
+        </div>
+
+        {gridView ? (
+          filteredBooks.length === 0 ? (
+            <p className="lib-grid-empty">
+              {query.trim() ? "일치하는 책이 없습니다." : "아직 등록된 책이 없습니다."}
+            </p>
+          ) : (
+            <div className="lib-grid">
+              {filteredBooks.map((b) => (
+                <BookGridCard key={b.id} book={b} onOpen={() => selectBook(b.id)} />
+              ))}
+            </div>
+          )
+        ) : (
+          <Coverflow
+            books={filteredBooks}
+            onSelect={selectBook}
+            emptyMessage={query.trim() ? "일치하는 책이 없습니다." : undefined}
+          />
+        )}
 
         <div className="lib-search" role="search">
           <input
@@ -229,12 +248,7 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
                   </p>
                   <h2>{book.title}</h2>
                   <div className="intro">{book.introduction}</div>
-                  {book.author_note && (
-                    <blockquote className="author-note">
-                      <span className="label">저자의 글</span>
-                      <span>{book.author_note}</span>
-                    </blockquote>
-                  )}
+                  {book.author_note && <AuthorNote key={book.id} text={book.author_note} />}
                   <button
                     className="to-discuss"
                     type="button"
@@ -269,21 +283,22 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
                   highlightId={highlightId}
                   onChanged={() => loadComments(book.id)}
                 />
+                <div className="discuss-toolbar">
+                  <button
+                    type="button"
+                    className="to-top"
+                    onClick={() => smoothScrollToElement(document.getElementById("top"), 700)}
+                    aria-label="상단으로 이동"
+                  >
+                    <span>상단으로 이동</span>
+                    <span className="arrow" aria-hidden>↑</span>
+                  </button>
+                </div>
               </div>
             </section>
           )}
         </div>
       )}
-
-      <button
-        type="button"
-        className={`side-btn${showTop ? " show" : ""}`}
-        onClick={backToTop}
-        aria-label="저자의 다른 책 보기"
-      >
-        <span className="arrow">↑</span>
-        <span>저자의 다른 책 보기</span>
-      </button>
 
       <Suspense fallback={null}>
         <DeepLinkReader onDeepLink={handleDeepLink} />
@@ -311,4 +326,62 @@ function countAll(nodes: CommentNode[]): number {
   let c = 0;
   for (const n of nodes) c += 1 + countAll(n.children);
   return c;
+}
+
+// 전체보기 그리드의 책 한 권 — 표지 + 제목 + 소개 3줄.
+// 소개가 3줄을 넘으면 '+ 더보기'가 나타나고, 카드/버튼을 누르면 아래 상세로 펼쳐진다.
+function BookGridCard({ book, onOpen }: { book: BookListItem; onOpen: () => void }) {
+  const introRef = useRef<HTMLParagraphElement | null>(null);
+  const [overflow, setOverflow] = useState(false);
+  const intro = book.introduction?.trim() ?? "";
+
+  useEffect(() => {
+    const el = introRef.current;
+    if (!el) return;
+    // CSS로 3줄 클램프된 상태에서 실제 내용이 더 긴지(=잘렸는지) 측정.
+    const measure = () => setOverflow(el.scrollHeight - el.clientHeight > 2);
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [intro]);
+
+  return (
+    <article
+      className="lib-card"
+      role="button"
+      tabIndex={0}
+      aria-label={`${book.title} 자세히 보기`}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+    >
+      <div className="lib-card-cover">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={book.cover_path ?? "/covers/book1.svg"} alt={`${book.title} 표지`} loading="lazy" />
+      </div>
+      <div className="lib-card-body">
+        {book.book_type && <p className="lib-card-kicker">{book.book_type}</p>}
+        <h3 className="lib-card-title">{book.title}</h3>
+        <p className="lib-card-intro" ref={introRef}>
+          {intro || "소개가 곧 추가됩니다."}
+        </p>
+        {overflow && (
+          <button
+            type="button"
+            className="lib-card-more"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen();
+            }}
+          >
+            + 더보기
+          </button>
+        )}
+      </div>
+    </article>
+  );
 }
