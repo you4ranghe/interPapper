@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Book } from "@/lib/types";
 import Pagination from "@/components/admin/Pagination";
+import BookGridSortable from "@/components/admin/BookGridSortable";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
   let query = supabase
     .from("books")
     .select("*", { count: "exact" })
+    .order("sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
   if (sp.q) query = query.ilike("title", `%${sp.q}%`);
   if (sp.type) query = query.eq("book_type", sp.type);
@@ -27,6 +29,9 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
   const { data, count } = await query.range(from, to);
   const books = (data as Book[]) ?? [];
   const total = count ?? 0;
+
+  // 필터/검색이 걸려 있으면 부분집합이라 전역 순서가 어긋날 수 있어 드래그 정렬을 막는다.
+  const reorderable = !sp.q && !sp.type && !sp.year;
 
   // 필터 옵션
   const { data: allTypes } = await supabase.from("books").select("book_type");
@@ -45,7 +50,7 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
         <Link className="btn" href="/admin/books/new">+ 새 책 등록</Link>
       </div>
 
-      <form className="filter-bar" method="get">
+      <form key={`${sp.q ?? ""}|${sp.type ?? ""}|${sp.year ?? ""}`} className="filter-bar" method="get">
         <input type="text" name="q" placeholder="제목 검색" defaultValue={sp.q ?? ""} />
         <select name="type" defaultValue={sp.type ?? ""}>
           <option value="">전체 타입</option>
@@ -56,27 +61,14 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
         <button className="btn" type="submit">검색</button>
-        <Link className="btn ghost" href="/admin/books">초기화</Link>
+        <a className="btn ghost" href="/admin/books">초기화</a>
       </form>
 
       {books.length === 0 ? (
         <p className="admin-empty">조건에 맞는 책이 없습니다.</p>
       ) : (
         <>
-          <div className="book-grid">
-            {books.map((b) => (
-              <Link key={b.id} href={`/admin/books/${b.id}`} className="book-card">
-                <div className="bc-cover">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={b.cover_path ?? "/covers/book1.svg"} alt={b.title} />
-                </div>
-                <div className="bc-meta">
-                  <div className="bc-title">{b.title}</div>
-                  <div className="bc-sub">{b.book_type ?? "-"}{b.published_year ? ` · ${b.published_year}` : ""}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <BookGridSortable books={books} startIndex={from} reorderable={reorderable} />
           <Pagination
             basePath="/admin/books"
             page={page}

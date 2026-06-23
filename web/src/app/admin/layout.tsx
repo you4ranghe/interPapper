@@ -13,11 +13,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="admin">
       <header className="admin-header">
-        <div className="admin-brand">
-          <Link href="/library">Interpaper</Link>
-          <span className="sep">·</span>
-          <span className="label">서재관리</span>
-        </div>
+        <Link className="btn ghost admin-home-btn" href="/library">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M12 7v14" />
+            <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+          </svg>
+          서재로 이동
+        </Link>
         <AdminNav />
         <div className="admin-user">
           <span className="who">{session.profile?.name || session.email}</span>

@@ -16,6 +16,7 @@ type RawComment = {
   content: string;
   hidden: boolean;
   created_at: string;
+  edited_at: string | null;
   profiles: { name: string | null } | null;
 };
 
@@ -32,6 +33,7 @@ function buildTree(rows: RawComment[]): CommentNode[] {
       content: r.content,
       hidden: r.hidden,
       created_at: r.created_at,
+      edited_at: r.edited_at,
       children: [],
     });
   }
@@ -61,7 +63,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
   const { data: rows } = await supabase
     .from("comments")
-    .select("id,book_id,parent_id,author_id,content,hidden,created_at, profiles!comments_author_id_fkey(name)")
+    .select("id,book_id,parent_id,author_id,content,hidden,created_at,edited_at, profiles!comments_author_id_fkey(name)")
     .eq("book_id", bookId)
     .order("created_at", { ascending: true });
 

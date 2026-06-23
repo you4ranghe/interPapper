@@ -6,6 +6,7 @@ export type Book = {
   cover_path: string | null;
   book_type: string | null;
   published_year: number | null;
+  sort_order: number | null; // 노출 순서(서재/관리자 공통, 작을수록 먼저)
   created_at: string;
 };
 
@@ -34,5 +35,6 @@ export type CommentNode = {
   content: string;
   hidden: boolean;
   created_at: string;
+  edited_at: string | null;
   children: CommentNode[];
 };

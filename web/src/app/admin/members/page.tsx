@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { createClient as createSbClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 import Pagination from "@/components/admin/Pagination";
+import ClickableRow from "@/components/admin/ClickableRow";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +71,7 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
         <h2>회원관리 <span className="cnt">{total}</span></h2>
       </div>
 
-      <form className="filter-bar" method="get">
+      <form key={`${sp.q ?? ""}|${sp.gender ?? ""}|${sp.role ?? ""}`} className="filter-bar" method="get">
         <input type="text" name="q" placeholder="이름 / 이메일 검색" defaultValue={sp.q ?? ""} />
         <select name="gender" defaultValue={sp.gender ?? ""}>
           <option value="">전체 성별</option>
@@ -86,7 +86,7 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
           <option value="admin">관리자</option>
         </select>
         <button className="btn" type="submit">검색</button>
-        <Link className="btn ghost" href="/admin/members">초기화</Link>
+        <a className="btn ghost" href="/admin/members">초기화</a>
       </form>
 
       {members.length === 0 ? (
@@ -95,21 +95,20 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
         <>
           <table className="admin-table">
             <thead>
-              <tr><th>성함</th><th>이메일</th><th>인증</th><th>성별</th><th>권한</th><th>가입일</th><th></th></tr>
+              <tr><th>성함</th><th>이메일</th><th>인증</th><th>성별</th><th>권한</th><th>가입일</th></tr>
             </thead>
             <tbody>
               {members.map((m) => {
                 const verified = verifiedMap.get(m.id);
                 return (
-                  <tr key={m.id}>
+                  <ClickableRow key={m.id} href={`/admin/members/${m.id}`}>
                     <td>{m.name || "-"}</td>
                     <td>{m.email || "-"}</td>
                     <td>{verified === undefined ? "-" : verified ? <span className="badge on">인증</span> : <span className="badge off">미인증</span>}</td>
                     <td>{GENDER_LABEL[m.gender ?? "na"] ?? "-"}</td>
                     <td>{m.role === "admin" ? <span className="badge gold">관리자</span> : "회원"}</td>
                     <td className="nowrap">{fmt(m.created_at)}</td>
-                    <td><Link className="btn ghost sm" href={`/admin/members/${m.id}`}>상세</Link></td>
-                  </tr>
+                  </ClickableRow>
                 );
               })}
             </tbody>

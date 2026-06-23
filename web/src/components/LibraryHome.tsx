@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Coverflow from "@/components/Coverflow";
 import Discussion from "@/components/Discussion";
 import AuthorNote from "@/components/AuthorNote";
+import ScrollToTop from "@/components/ScrollToTop";
 import { createClient } from "@/lib/supabase/client";
 import { buildCommentTree, COMMENT_SELECT, type RawComment } from "@/lib/comments";
 import { smoothScrollToElement } from "@/lib/smoothScroll";
@@ -26,7 +27,7 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string | null>(null); // null = 전체
-  const [gridView, setGridView] = useState(false); // false = 표지 넘기기(coverflow), true = 전체보기(그리드)
+  const [gridView, setGridView] = useState(true); // true = 전체보기(그리드, 기본값), false = 표지 넘기기(coverflow)
   const [highlightId, setHighlightId] = useState<number | null>(null);
   const detailRef = useRef<HTMLDivElement | null>(null);
   const lastDeepLinkRef = useRef<string>("");
@@ -77,6 +78,7 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
           introduction: "",
           author_note: "",
           published_year: null,
+          sort_order: null,
           created_at: "",
         });
       }
@@ -139,6 +141,46 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
     }
   }, [activeTab]);
 
+  // 세그먼트형 토글 스위치: 두 라벨을 모두 보여주고, 활성 칸을 글래스 pill 이 미끄러지듯 표시.
+  const viewToggle = (
+    <div className="lib-segtoggle" role="tablist" aria-label="보기 방식">
+      <span className="lib-segtoggle-thumb" data-pos={gridView ? "grid" : "slide"} aria-hidden />
+      <button
+        type="button"
+        role="tab"
+        aria-selected={gridView}
+        aria-label="전체로 보기"
+        title="전체로 보기"
+        className={`lib-segbtn${gridView ? " active" : ""}`}
+        onClick={() => setGridView(true)}
+      >
+        {/* 전체로 보기 — 격자 아이콘 */}
+        <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <rect x="3" y="3" width="7" height="7" rx="1.4" />
+          <rect x="14" y="3" width="7" height="7" rx="1.4" />
+          <rect x="3" y="14" width="7" height="7" rx="1.4" />
+          <rect x="14" y="14" width="7" height="7" rx="1.4" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={!gridView}
+        aria-label="슬라이드로 보기"
+        title="슬라이드로 보기"
+        className={`lib-segbtn${!gridView ? " active" : ""}`}
+        onClick={() => setGridView(false)}
+      >
+        {/* 슬라이드로 보기 — 가운데 표지 + 양옆 표지가 비치는 코버플로우 아이콘 */}
+        <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M2 4v16" />
+          <rect x="6" y="3" width="12" height="18" rx="2" />
+          <path d="M22 4v16" />
+        </svg>
+      </button>
+    </div>
+  );
+
   return (
     <div className="lib-page">
       <section className={`hero${gridView ? " is-grid" : ""}`} id="top">
@@ -175,16 +217,8 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
           </div>
         </div>
 
-        <div className="lib-viewbar">
-          <button
-            type="button"
-            className={`lib-viewtoggle${gridView ? " on" : ""}`}
-            aria-pressed={gridView}
-            onClick={() => setGridView((v) => !v)}
-          >
-            {gridView ? "표지로 넘겨보기" : "전체보기"}
-          </button>
-        </div>
+        {/* 보기 방식 토글: 항상 같은 위치(그리드 우측 라인에 정렬)에 고정 → 모드 전환 시 흔들림 없음 */}
+        <div className="lib-viewbar">{viewToggle}</div>
 
         {gridView ? (
           filteredBooks.length === 0 ? (
@@ -283,22 +317,13 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
                   highlightId={highlightId}
                   onChanged={() => loadComments(book.id)}
                 />
-                <div className="discuss-toolbar">
-                  <button
-                    type="button"
-                    className="to-top"
-                    onClick={() => smoothScrollToElement(document.getElementById("top"), 700)}
-                    aria-label="상단으로 이동"
-                  >
-                    <span>상단으로 이동</span>
-                    <span className="arrow" aria-hidden>↑</span>
-                  </button>
-                </div>
               </div>
             </section>
           )}
         </div>
       )}
+
+      <ScrollToTop />
 
       <Suspense fallback={null}>
         <DeepLinkReader onDeepLink={handleDeepLink} />

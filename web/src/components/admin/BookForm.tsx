@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import type { ActionState } from "@/app/admin/actions";
 import type { Book } from "@/lib/types";
+import YearPicker from "@/components/admin/YearPicker";
 
 type Props = {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
@@ -46,10 +47,10 @@ export default function BookForm({ action, initial, submitLabel }: Props) {
           <label>제목<input type="text" name="title" defaultValue={initial?.title ?? ""} maxLength={200} required /></label>
           <div className="two">
             <label>책 타입<input type="text" name="book_type" defaultValue={initial?.book_type ?? ""} placeholder="에세이 / 산문 / 회고" /></label>
-            <label>출간 연도<input type="number" name="published_year" defaultValue={initial?.published_year ?? ""} placeholder="2024" /></label>
+            <label>출간 연도<YearPicker name="published_year" initial={initial?.published_year ?? null} /></label>
           </div>
-          <label>책 소개<textarea name="introduction" defaultValue={initial?.introduction ?? ""} rows={4} required /></label>
-          <label>저자의 글<textarea name="author_note" defaultValue={initial?.author_note ?? ""} rows={3} /></label>
+          <label>책 소개<textarea name="introduction" defaultValue={initial?.introduction ?? ""} rows={10} required /></label>
+          <label>저자의 글<textarea name="author_note" defaultValue={initial?.author_note ?? ""} rows={6} /></label>
         </div>
       </div>
 

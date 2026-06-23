@@ -54,8 +54,17 @@ export async function createBook(_prev: ActionState, formData: FormData): Promis
     let cover_path: string | null = null;
     if (cover && cover.size > 0) cover_path = await uploadCover(supabase, cover);
 
+    // 새 책은 노출 순서 맨 뒤로 (관리자가 드래그로 옮길 수 있음)
+    const { data: last } = await supabase
+      .from("books")
+      .select("sort_order")
+      .order("sort_order", { ascending: false, nullsFirst: false })
+      .limit(1)
+      .maybeSingle();
+    const sort_order = (((last as { sort_order: number | null } | null)?.sort_order) ?? -1) + 1;
+
     const { error } = await supabase.from("books").insert({
-      title, introduction, author_note, book_type, published_year, cover_path,
+      title, introduction, author_note, book_type, published_year, cover_path, sort_order,
     });
     if (error) return { error: error.message };
   } catch (e) {
@@ -102,6 +111,34 @@ export async function deleteBook(formData: FormData): Promise<void> {
     revalidatePath("/");
   }
   redirect("/admin/books");
+}
+
+/**
+ * 책 노출 순서 일괄 변경 (드래그앤드롭).
+ * orderedIds: 화면에 보이는 순서대로의 책 id 배열.
+ * startIndex: 현재 페이지의 시작 절대 위치(=페이지 offset). 페이지별로 sort_order 가 어긋나지 않게 보정.
+ */
+export async function reorderBooks(
+  orderedIds: number[],
+  startIndex: number = 0
+): Promise<ActionState> {
+  try {
+    const supabase = await requireAdmin();
+    const ids = orderedIds.filter((n) => Number.isFinite(n));
+    const base = Number.isFinite(startIndex) ? startIndex : 0;
+    const results = await Promise.all(
+      ids.map((id, i) =>
+        supabase.from("books").update({ sort_order: base + i }).eq("id", id)
+      )
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) return { error: failed.error.message };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "순서 변경에 실패했습니다." };
+  }
+  revalidatePath("/admin/books");
+  revalidatePath("/");
+  return {};
 }
 
 export async function setCommentHidden(formData: FormData): Promise<void> {

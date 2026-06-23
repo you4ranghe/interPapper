@@ -20,7 +20,7 @@ function buildHref(basePath: string, params: Record<string, string | undefined>,
 
 export default function Pagination({ basePath, page, pageSize, total, params }: Props) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  if (totalPages <= 1) return null;
+  // 1페이지여도 현재 페이지(1)를 표기한다. (전체 0건은 목록 분기에서 렌더 안 됨)
 
   const cur = Math.min(Math.max(1, page), totalPages);
   const window = 2;

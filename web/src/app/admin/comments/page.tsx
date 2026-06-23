@@ -57,7 +57,7 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
         <h2>댓글관리 <span className="cnt">{total}</span></h2>
       </div>
 
-      <form className="filter-bar" method="get">
+      <form key={`${sp.q ?? ""}|${sp.book ?? ""}|${sp.hidden ?? ""}`} className="filter-bar" method="get">
         <input type="text" name="q" placeholder="내용 검색" defaultValue={sp.q ?? ""} />
         <select name="book" defaultValue={sp.book ?? ""}>
           <option value="">전체 책</option>
@@ -69,6 +69,7 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
           <option value="hidden">숨김</option>
         </select>
         <button className="btn" type="submit">검색</button>
+        <a className="btn ghost" href="/admin/comments">초기화</a>
       </form>
 
       {rows.length === 0 ? (
@@ -77,7 +78,7 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
         <>
           <table className="admin-table">
             <thead>
-              <tr><th>책</th><th>작성자</th><th>내용</th><th>작성일</th><th>상태</th><th></th></tr>
+              <tr><th>책</th><th>작성자</th><th>내용</th><th>작성일</th><th>노출 / 숨김</th></tr>
             </thead>
             <tbody>
               {rows.map((r) => (
@@ -86,12 +87,20 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
                   <td>{r.profiles?.name ?? "익명"}</td>
                   <td className="cell-content">{r.content}</td>
                   <td className="nowrap">{fmt(r.created_at)}</td>
-                  <td>{r.hidden ? <span className="badge off">숨김</span> : <span className="badge on">노출</span>}</td>
                   <td>
                     <form action={setCommentHidden}>
                       <input type="hidden" name="id" value={r.id} />
                       <input type="hidden" name="hidden" value={(!r.hidden).toString()} />
-                      <button className="btn ghost sm" type="submit">{r.hidden ? "노출" : "숨김"}</button>
+                      <button
+                        type="submit"
+                        role="switch"
+                        aria-checked={!r.hidden}
+                        className={`hswitch${!r.hidden ? " on" : ""}`}
+                        title={r.hidden ? "숨김 상태 — 클릭하면 노출" : "노출 상태 — 클릭하면 숨김"}
+                      >
+                        <span className="hswitch-track"><span className="hswitch-knob" /></span>
+                        <span className="hswitch-label">{r.hidden ? "숨김" : "노출"}</span>
+                      </button>
                     </form>
                   </td>
                 </tr>

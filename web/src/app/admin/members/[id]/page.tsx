@@ -51,25 +51,25 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
         <Link className="btn ghost" href="/admin/members">← 목록</Link>
       </div>
 
+      {/* 이메일 인증 — 유일하게 관리자가 조치 가능한 항목이라 우상단에 따로 분리 */}
+      <div className="member-verifybar">
+        <span className="vb-label">이메일 인증</span>
+        {verified ? (
+          <span className="badge on">인증 완료{emailConfirmedAt ? ` · ${fmt(emailConfirmedAt)}` : ""}</span>
+        ) : (
+          <>
+            <span className="badge off">미인증</span>
+            <form action={confirmMemberEmail}>
+              <input type="hidden" name="userId" value={m.id} />
+              <button className="btn sm" type="submit">관리자 권한으로 인증 처리</button>
+            </form>
+          </>
+        )}
+      </div>
+
       <div className="detail-grid">
         <Field label="성함" value={m.name || "-"} />
         <Field label="이메일" value={m.email || "-"} />
-        <Field
-          label="이메일 인증"
-          valueNode={
-            verified ? (
-              <span className="badge on">인증 완료{emailConfirmedAt ? ` · ${fmt(emailConfirmedAt)}` : ""}</span>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <span className="badge off">미인증</span>
-                <form action={confirmMemberEmail}>
-                  <input type="hidden" name="userId" value={m.id} />
-                  <button className="btn sm" type="submit">관리자 권한으로 인증 처리</button>
-                </form>
-              </div>
-            )
-          }
-        />
         <Field label="성별" value={GENDER_LABEL[m.gender ?? "na"] ?? "-"} />
         <Field label="권한" value={m.role === "admin" ? "관리자" : "회원"} />
         <Field label="주소" value={m.address || "-"} />
