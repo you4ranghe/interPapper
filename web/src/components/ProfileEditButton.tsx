@@ -33,7 +33,12 @@ export default function ProfileEditButton({ profile }: { profile: ProfileLite })
         aria-haspopup="dialog"
         title="회원정보 수정"
       >
-        <span className="who">{display}</span>님
+        <svg className="who-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span className="who-desktop"><span className="who">{display}</span>님</span>
+        <span className="who-mobile">마이페이지</span>
       </button>
       {open && createPortal(
         <ProfileModal profile={profile} onClose={() => setOpen(false)} />,

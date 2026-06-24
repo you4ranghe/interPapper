@@ -237,6 +237,87 @@ body::after {
 .top-bar .top-actions { position: static; top: auto; right: auto; z-index: auto; }
 .top-actions { position: fixed; top: clamp(14px, 2.5vh, 26px); right: clamp(14px, 2.5vw, 32px); z-index: 80; display: flex; gap: 10px; align-items: center; }
 .admin-actions { display: flex; gap: 10px; align-items: center; }
+
+/* 상단바 메뉴 래퍼 — 데스크톱에선 레이아웃 영향 없이 통과 */
+.topbar-menu, .topbar-items { display: contents; }
+.topbar-burger, .topbar-scrim { display: none; }
+
+/* 모바일: 햄버거로 접기 */
+@media (max-width: 760px) {
+  .topbar-menu { display: block; position: relative; }
+  .topbar-items { display: none; }
+  .topbar-burger {
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+    width: 46px; height: 46px; border-radius: 14px; cursor: pointer;
+    background: linear-gradient(180deg, color-mix(in oklch, #fdfaf3, white 30%), #fdfaf3);
+    border: 1px solid color-mix(in oklch, #2a221b, transparent 84%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.82), 0 10px 26px -12px rgba(42,34,27,.28);
+  }
+  .topbar-burger .bar { width: 20px; height: 2px; border-radius: 2px; background: #2a221b; transition: transform .26s var(--ease-spring), opacity .18s; }
+  .topbar-menu.open .topbar-burger .bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .topbar-menu.open .topbar-burger .bar:nth-child(2) { opacity: 0; }
+  .topbar-menu.open .topbar-burger .bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .topbar-scrim { display: block; position: fixed; inset: 0; z-index: 79; background: transparent; border: none; }
+
+  .topbar-menu.open .topbar-items {
+    display: flex; flex-direction: column; align-items: stretch; gap: 2px;
+    position: absolute; top: calc(100% + 10px); right: 0;
+    width: max-content; min-width: 208px; max-width: 80vw; padding: 6px;
+    border-radius: 16px; z-index: 90;
+    background: color-mix(in oklch, #fdfaf3, white 6%);
+    border: 1px solid color-mix(in oklch, #2a221b, transparent 88%);
+    box-shadow: 0 26px 54px -20px rgba(42,34,27,.42);
+    animation: notifPop .22s var(--ease-spring);
+  }
+  /* 내부 그룹: 글래스 pill 제거하고 세로 스택 */
+  body:has(.lib-page) .topbar-items .admin-actions,
+  body:has(.lib-page) .topbar-items .top-actions {
+    position: static; flex-direction: column; align-items: stretch; gap: 2px;
+    padding: 0; background: none; border: none; box-shadow: none;
+    backdrop-filter: none; -webkit-backdrop-filter: none; width: 100%;
+  }
+  /* 공통 메뉴 행 — 좌측 정렬 아이콘 + 라벨, 균일 높이.
+     데스크톱 오버라이드(.top-actions/.admin-actions ...)를 이기려 .topbar-menu.open 으로 우선순위↑ */
+  body:has(.lib-page) .topbar-menu.open .topbar-items .pill-btn,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .who-btn,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .bell-btn {
+    width: 100%; min-height: 46px; height: auto;
+    display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+    padding: 11px 14px; border-radius: 10px;
+    background: transparent; border: none; box-shadow: none; white-space: nowrap;
+    color: #2a221b; font-size: .95rem; font-weight: 500; letter-spacing: 0;
+    text-decoration: none; transform: none;
+  }
+  body:has(.lib-page) .topbar-menu.open .topbar-items .pill-btn,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .who-btn,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .bell-btn {
+    transition: background .16s var(--ease-out), box-shadow .16s var(--ease-out), color .16s var(--ease-out);
+  }
+  body:has(.lib-page) .topbar-menu.open .topbar-items .pill-btn:hover,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .who-btn:hover,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .bell-btn:hover,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .pill-btn:focus-visible,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .who-btn:focus-visible,
+  body:has(.lib-page) .topbar-menu.open .topbar-items .bell-btn:focus-visible {
+    background: color-mix(in oklch, var(--clay), transparent 88%);
+    box-shadow: inset 3px 0 0 0 var(--clay);
+    transform: none; border: none; color: var(--clay); outline: none;
+  }
+  .topbar-menu.open .topbar-items svg { width: 18px; height: 18px; flex: none; }
+  .topbar-menu.open .topbar-items .auth-ico { display: inline-flex; align-items: center; }
+
+  /* 알림 행: '알림' 라벨 + 우측 카운트 */
+  .topbar-menu.open .topbar-items .bell-btn::after { content: "알림"; }
+  .topbar-menu.open .topbar-items .bell-btn .bell-badge {
+    position: static; margin-left: auto; transform: none; top: auto; right: auto;
+  }
+  /* 마이페이지 행: 데스크톱 이름 숨기고 아이콘 + '마이페이지' 표시 */
+  .topbar-menu.open .topbar-items .who-btn .who-desktop { display: none; }
+  .topbar-menu.open .topbar-items .who-btn .who-ico { display: inline-flex; }
+  .topbar-menu.open .topbar-items .who-btn .who-mobile { display: inline; }
+  /* 회원가입(solid)만 강조 유지 */
+}
 .pill-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 9px 16px; border-radius: 22px; font-family: inherit; font-size: .84rem; letter-spacing: .03em; cursor: pointer; text-decoration: none; color: var(--paper); background: rgba(18,12,7,.55); backdrop-filter: blur(12px) saturate(140%); border: 1px solid rgba(226,196,137,.32); transition: transform .25s var(--ease-supa), background .22s, border-color .22s, box-shadow .22s; }
 .pill-btn:hover { background: rgba(46,32,18,.8); border-color: var(--gold); transform: translateY(-1px) scale(1.02); }
 .pill-btn:active { transform: scale(.98); }
@@ -278,22 +359,19 @@ body::after {
 
 .auth-card {
   position: relative;
-  width: min(460px, 96vw);
-  padding: clamp(30px, 4vw, 48px);
-  border-radius: 24px;
+  width: min(440px, 96vw);
+  padding: clamp(28px, 4vw, 44px);
+  border-radius: 22px;
   color: var(--paper);
-  /* 더블 레이어 페이퍼-우드 */
-  background:
-    linear-gradient(180deg, rgba(38,28,17,.95) 0%, rgba(22,15,9,.97) 100%);
-  border: 1px solid transparent;
-  background-clip: padding-box;
-  /* double-bezel: 안쪽 하이라이트 + 안쪽 다크 라인 + 따뜻한 외부 그림자 */
+  /* 플랫 글래스 — 다크 바디 위에 은은히 비치는 카드 */
+  background: rgba(26,19,12,.72);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border: 1px solid rgba(255,255,255,.09);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.06),
-    inset 0 0 0 1px color-mix(in oklch, #e2c489, transparent 78%),
-    0 36px 80px -32px rgba(0,0,0,.7),
-    0 12px 30px -16px color-mix(in oklch, #a85f3e, transparent 70%);
-  animation: authPop .9s var(--ease-supa) both;
+    0 30px 70px -28px rgba(0,0,0,.72),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  animation: authPop .7s var(--ease-supa) both;
 }
 @keyframes authPop {
   from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(6px); }
@@ -303,46 +381,33 @@ body::after {
   .auth-card { animation: none; }
 }
 
-/* 상단 골드 하이라이트 — 보석/금속 가장자리 느낌 */
-.auth-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, color-mix(in oklch, #e2c489, transparent 78%), transparent 40%);
-  opacity: .55;
-}
 .auth-card > * { position: relative; }
 
 .auth-card .eyebrow {
   font-size: .7rem;
-  letter-spacing: .48em;
+  letter-spacing: .34em;
   text-transform: uppercase;
   color: var(--gold-soft);
   margin: 0 0 10px;
-  padding-left: .48em;
+  padding-left: .34em;
   opacity: .85;
 }
 .auth-card h1 {
-  margin: 0 0 26px;
-  font-weight: 500;
-  font-size: clamp(1.6rem, 3vw, 1.95rem);
-  letter-spacing: .02em;
-  line-height: 1.18;
-  /* supanova 룰: 페이지당 그라데이션 텍스트 1개 */
-  background: linear-gradient(180deg, #fbf4e4 30%, var(--gold-soft) 130%);
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  margin: 0 0 28px;
+  font-weight: 600;
+  font-size: clamp(1.75rem, 3.4vw, 2.1rem);
+  letter-spacing: -.01em;
+  line-height: 1.15;
+  color: #f4ecda;
 }
 
 .auth-form { display: flex; flex-direction: column; gap: 14px; }
 .auth-form label {
   display: flex; flex-direction: column;
   gap: 7px;
-  font-size: .76rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
+  font-size: .8rem;
+  letter-spacing: .01em;
+  text-transform: none;
   color: var(--gold-soft);
   /* 라벨 stagger */
   animation: authFieldRise .65s var(--ease-supa) both;
@@ -369,49 +434,44 @@ body::after {
   font-size: .95rem;
   letter-spacing: -.003em;
   text-transform: none;
-  min-height: 44px;
+  min-height: 46px;
   padding: 12px 14px;
-  border-radius: 11px;
+  border-radius: 12px;
   color: var(--paper);
-  background: rgba(10,7,4,.55);
-  border: 1px solid color-mix(in oklch, #e2c489, transparent 72%);
-  box-shadow:
-    inset 0 1px 2px rgba(0,0,0,.32),
-    inset 0 0 0 1px rgba(255,255,255,.02);
+  background-color: rgba(0,0,0,.26);
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: none;
   transition:
-    border-color .22s var(--ease-out),
-    box-shadow .25s var(--ease-out),
-    background .22s var(--ease-out);
+    border-color .2s var(--ease-out),
+    box-shadow .22s var(--ease-out),
+    background-color .2s var(--ease-out);
 }
 .auth-form input::placeholder,
 .auth-form textarea::placeholder {
-  color: color-mix(in oklch, var(--gold-soft), transparent 55%);
+  color: color-mix(in oklch, var(--gold-soft), transparent 58%);
   letter-spacing: -.003em;
 }
 .auth-form select {
   appearance: none;
   -webkit-appearance: none;
-  background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d8b878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 14px center,
-    rgba(10,7,4,.55);
-  background-size: 14px 14px, auto;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d8b878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px 14px;
   padding-right: 38px;
 }
 .auth-form input:hover,
 .auth-form select:hover,
 .auth-form textarea:hover {
-  border-color: color-mix(in oklch, #e2c489, transparent 55%);
-  background: rgba(10,7,4,.65);
+  border-color: rgba(255,255,255,.2);
 }
 .auth-form input:focus,
 .auth-form select:focus,
 .auth-form textarea:focus {
   outline: none;
   border-color: var(--gold-soft);
-  background: rgba(10,7,4,.72);
-  box-shadow:
-    inset 0 1px 2px rgba(0,0,0,.32),
-    0 0 0 4px color-mix(in oklch, #e2c489, transparent 78%);
+  background-color: rgba(0,0,0,.34);
+  box-shadow: 0 0 0 3px color-mix(in oklch, #e2c489, transparent 74%);
 }
 .auth-form textarea {
   resize: vertical;
@@ -424,7 +484,7 @@ body::after {
 .auth-form input:-webkit-autofill:focus,
 .auth-form input:-webkit-autofill:active {
   -webkit-text-fill-color: var(--paper);
-  -webkit-box-shadow: 0 0 0 1000px rgba(10,7,4,.72) inset, inset 0 1px 2px rgba(0,0,0,.32);
+  -webkit-box-shadow: 0 0 0 1000px rgba(0,0,0,.34) inset;
   caret-color: var(--paper);
   transition: background-color 9999s ease-out 0s;
 }
@@ -494,12 +554,11 @@ body::after {
   display: flex; flex-direction: column;
   gap: 16px;
   line-height: 1.75;
-  padding: 18px 20px;
+  padding: 20px;
   border-radius: 14px;
-  background:
-    linear-gradient(180deg, rgba(226,196,137,.08), rgba(226,196,137,.03));
-  border: 1px solid color-mix(in oklch, #e2c489, transparent 72%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.09);
+  box-shadow: none;
 }
 .auth-sent p { margin: 0; }
 .auth-sent b { color: var(--gold); font-weight: 600; letter-spacing: -.003em; }
@@ -1934,7 +1993,14 @@ body:has(.lib-page) .top-actions .pill-btn .who {
 /* 헤더 '서재로 이동' 버튼 */
 .admin-home-btn { flex: none; text-decoration: none; }
 .admin-home-btn svg,
-.home-btn svg { width: 16px; height: 16px; flex: none; }
+.home-btn svg,
+.logout-btn svg { width: 16px; height: 16px; flex: none; }
+/* who-btn: 기본(데스크톱)은 이름만, 모바일 햄버거에서만 아이콘+'마이페이지' */
+.who-ico, .who-mobile { display: none; }
+/* admin 탭 아이콘: 기본(데스크톱) 숨김, 모바일 드롭다운에서만 표시 */
+.admin-tab-ico { display: none; }
+/* 로그인/회원가입 아이콘: 기본 숨김, 모바일 드롭다운에서만 표시 */
+.auth-ico { display: none; }
 
 @media (max-width: 760px) {
   .admin-tab { min-height: 44px; }
@@ -2549,11 +2615,79 @@ body:has(.lib-page) .top-actions .pill-btn .who {
 }
 
 @media (max-width: 760px) {
-  .admin-header { flex-wrap: wrap; gap: 12px; }
   .admin-form-grid { grid-template-columns: 1fr; }
   .cover-field { max-width: 220px; }
   .detail-grid { grid-template-columns: 1fr; }
   .admin-table .cell-content { max-width: 180px; }
+}
+
+/* ===== Admin 모바일 햄버거 ===== */
+.admin-title-m { display: none; }
+@media (max-width: 760px) {
+  .admin-header { flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 12px; }
+  .admin-title-m {
+    display: inline-flex; align-items: center;
+    font-family: var(--font-display); font-size: 1.08rem; letter-spacing: .02em; color: var(--gold-soft);
+  }
+  /* 햄버거 — 다크 */
+  .admin .topbar-burger {
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--admin-line-strong);
+    box-shadow: none;
+  }
+  .admin .topbar-burger .bar { background: var(--paper); }
+
+  /* 드롭다운 패널 — 다크 글래스 */
+  .admin .topbar-menu.open .topbar-items {
+    display: flex; flex-direction: column; align-items: stretch; gap: 2px;
+    position: absolute; top: calc(100% + 10px); right: 0;
+    width: max-content; min-width: 220px; max-width: 82vw; padding: 6px;
+    border-radius: 16px; z-index: 90;
+    background: rgba(22,16,10,.98);
+    border: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 26px 54px -20px rgba(0,0,0,.8);
+    animation: notifPop .22s var(--ease-spring);
+  }
+  /* 내부 그룹 세로 스택 */
+  .admin .topbar-items .admin-nav,
+  .admin .topbar-items .admin-user {
+    display: flex; flex-direction: column; align-items: stretch; gap: 2px; width: 100%; margin: 0;
+  }
+  /* 공통 메뉴 행 (다크) */
+  .admin .topbar-menu.open .topbar-items .admin-tab,
+  .admin .topbar-menu.open .topbar-items .btn,
+  .admin .topbar-menu.open .topbar-items .pill-btn {
+    width: 100%; min-height: 46px;
+    display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+    padding: 11px 14px; border-radius: 10px;
+    background: transparent; border: none; box-shadow: none; white-space: nowrap;
+    color: var(--paper); font-size: .95rem; font-weight: 500; letter-spacing: 0;
+    text-decoration: none; transform: none;
+  }
+  .admin .topbar-menu.open .topbar-items .admin-tab,
+  .admin .topbar-menu.open .topbar-items .btn,
+  .admin .topbar-menu.open .topbar-items .pill-btn {
+    transition: background .16s var(--ease-out), box-shadow .16s var(--ease-out), color .16s var(--ease-out);
+  }
+  .admin .topbar-menu.open .topbar-items .admin-tab:hover,
+  .admin .topbar-menu.open .topbar-items .btn:hover,
+  .admin .topbar-menu.open .topbar-items .pill-btn:hover,
+  .admin .topbar-menu.open .topbar-items .admin-tab:focus-visible,
+  .admin .topbar-menu.open .topbar-items .btn:focus-visible,
+  .admin .topbar-menu.open .topbar-items .pill-btn:focus-visible {
+    background: rgba(255,255,255,.1); color: #fbf4e4;
+    box-shadow: inset 3px 0 0 0 var(--gold-soft);
+    transform: none; border: none; outline: none;
+  }
+  .admin .topbar-menu.open .topbar-items .admin-tab.active {
+    background: rgba(255,255,255,.1); color: #fbf4e4; font-weight: 600;
+  }
+  .admin .topbar-items .admin-tab::after { display: none; }
+  .admin .topbar-menu.open .topbar-items svg { width: 18px; height: 18px; flex: none; }
+  /* 탭 아이콘은 모바일 드롭다운에서만 표시 */
+  .admin .topbar-menu.open .topbar-items .admin-tab-ico { display: inline-flex; align-items: center; }
+  /* 이름은 모바일 메뉴에선 숨김 */
+  .admin .topbar-items .admin-user .who { display: none; }
 }
 
 /* ============================================================
