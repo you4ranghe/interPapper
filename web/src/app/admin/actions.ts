@@ -39,6 +39,22 @@ function parseYear(v: FormDataEntryValue | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** 판매처 링크(JSON 문자열) → 정제된 배열. url 없는 항목은 버림. */
+function parseLinks(v: FormDataEntryValue | null): { seller: string; url: string }[] {
+  try {
+    const arr = JSON.parse(String(v ?? "[]"));
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .map((x) => ({
+        seller: String(x?.seller ?? "").trim(),
+        url: String(x?.url ?? "").trim(),
+      }))
+      .filter((x) => x.url);
+  } catch {
+    return [];
+  }
+}
+
 export async function createBook(_prev: ActionState, formData: FormData): Promise<ActionState> {
   let supabase: SupabaseClient;
   try {
@@ -48,6 +64,8 @@ export async function createBook(_prev: ActionState, formData: FormData): Promis
     const author_note = String(formData.get("author_note") ?? "").trim();
     const book_type = String(formData.get("book_type") ?? "").trim() || null;
     const published_year = parseYear(formData.get("published_year"));
+    const is_published = formData.get("is_published") != null;
+    const purchase_links = parseLinks(formData.get("purchase_links"));
     const cover = formData.get("cover") as File | null;
     if (!title || !introduction) return { error: "제목과 소개는 필수입니다." };
 
@@ -64,7 +82,8 @@ export async function createBook(_prev: ActionState, formData: FormData): Promis
     const sort_order = (((last as { sort_order: number | null } | null)?.sort_order) ?? -1) + 1;
 
     const { error } = await supabase.from("books").insert({
-      title, introduction, author_note, book_type, published_year, cover_path, sort_order,
+      title, introduction, author_note, book_type, published_year,
+      is_published, purchase_links, cover_path, sort_order,
     });
     if (error) return { error: error.message };
   } catch (e) {
@@ -85,11 +104,15 @@ export async function updateBook(_prev: ActionState, formData: FormData): Promis
     const author_note = String(formData.get("author_note") ?? "").trim();
     const book_type = String(formData.get("book_type") ?? "").trim() || null;
     const published_year = parseYear(formData.get("published_year"));
+    const is_published = formData.get("is_published") != null;
+    const purchase_links = parseLinks(formData.get("purchase_links"));
     const cover = formData.get("cover") as File | null;
     if (!Number.isFinite(id)) return { error: "잘못된 책입니다." };
     if (!title || !introduction) return { error: "제목과 소개는 필수입니다." };
 
-    const patch: Record<string, unknown> = { title, introduction, author_note, book_type, published_year };
+    const patch: Record<string, unknown> = {
+      title, introduction, author_note, book_type, published_year, is_published, purchase_links,
+    };
     if (cover && cover.size > 0) patch.cover_path = await uploadCover(supabase, cover);
 
     const { error } = await supabase.from("books").update(patch).eq("id", id);

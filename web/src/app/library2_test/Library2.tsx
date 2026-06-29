@@ -114,6 +114,8 @@ export default function Library2({
           introduction: "",
           author_note: "",
           published_year: null,
+          is_published: true,
+          purchase_links: [],
           sort_order: null,
           created_at: "",
         });

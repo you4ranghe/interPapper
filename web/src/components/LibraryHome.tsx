@@ -78,6 +78,8 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
           introduction: "",
           author_note: "",
           published_year: null,
+          is_published: true,
+          purchase_links: [],
           sort_order: null,
           created_at: "",
         });

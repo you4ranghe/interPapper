@@ -126,6 +126,24 @@ export default function BookGridSortable({ books, startIndex, reorderable }: Pro
                   {b.book_type ?? "-"}
                   {b.published_year ? ` · ${b.published_year}` : ""}
                 </div>
+                <div className="bc-badges">
+                  {!b.is_published && <span className="bc-badge unpub">미출간</span>}
+                  {(b.purchase_links ?? []).map((l, li) => (
+                    <a
+                      key={li}
+                      className="bc-link-btn"
+                      href={l.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={l.url}
+                      draggable={false}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      {l.seller || "판매처"} ↗
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
           );

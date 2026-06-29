@@ -1,3 +1,9 @@
+/** 책 판매처 링크 (관리자 화면에서만 노출) */
+export type PurchaseLink = {
+  seller: string; // 교보문고 / 알라딘 / 예스24 등
+  url: string;
+};
+
 export type Book = {
   id: number;
   title: string;
@@ -6,6 +12,8 @@ export type Book = {
   cover_path: string | null;
   book_type: string | null;
   published_year: number | null;
+  is_published: boolean; // 출간 완료 여부 (false = 미출간/출간예정)
+  purchase_links: PurchaseLink[]; // 판매처 링크 — 관리자 전용 노출
   sort_order: number | null; // 노출 순서(서재/관리자 공통, 작을수록 먼저)
   created_at: string;
 };
