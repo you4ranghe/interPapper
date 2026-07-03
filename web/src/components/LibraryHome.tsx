@@ -218,7 +218,7 @@ export default function LibraryHome({ books, userId, userName, userAvatarUrl = n
       <section className={`hero${gridView ? " is-grid" : ""}`} id="top">
         <header className="site-header">
           <p className="eyebrow">Interpaper Library</p>
-          <h1>아버지의 서재</h1>
+          <h1>바우치 서재(書齋)</h1>
           <div className="divider" />
         </header>
         <div className="lib-tabs-wrap">

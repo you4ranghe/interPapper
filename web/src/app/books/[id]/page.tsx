@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .maybeSingle();
   if (!data) return {};
 
-  const title = `${data.title} · 아버지의 서재`;
+  const title = `${data.title} · 바우치 서재(書齋)`;
   const description = (data.introduction ?? "").replace(/\s+/g, " ").trim().slice(0, 160);
   return {
     title,
