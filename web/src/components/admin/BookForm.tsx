@@ -65,7 +65,7 @@ export default function BookForm({ action, initial, submitLabel }: Props) {
             <label>출간 연도<YearPicker name="published_year" initial={initial?.published_year ?? null} /></label>
           </div>
 
-          {/* 출간 여부 */}
+          {/* 서재 노출 여부 — 켜면 /library 에 노출, 끄면 숨김 */}
           <button
             type="button"
             className={`pub-toggle${published ? " on" : ""}`}
@@ -74,7 +74,7 @@ export default function BookForm({ action, initial, submitLabel }: Props) {
             onClick={() => setPublished((v) => !v)}
           >
             <span className="dot" aria-hidden />
-            <span className="txt">{published ? "출간 완료" : "미출간 (출간 예정)"}</span>
+            <span className="txt">{published ? "노출 중 · 서재에 표시됩니다" : "숨김 · 서재에서 감춰집니다"}</span>
           </button>
 
           <label>책 소개<textarea name="introduction" defaultValue={initial?.introduction ?? ""} rows={10} required /></label>

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 10;
 
-type SP = { q?: string; type?: string; year?: string; page?: string };
+type SP = { q?: string; type?: string; year?: string; status?: string; page?: string };
 
 export default async function AdminBooksPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
@@ -26,12 +26,14 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
   if (sp.q) query = query.ilike("title", `%${sp.q}%`);
   if (sp.type) query = query.eq("book_type", sp.type);
   if (sp.year) query = query.eq("published_year", Number(sp.year));
+  if (sp.status === "1") query = query.eq("is_published", true);
+  if (sp.status === "0") query = query.eq("is_published", false);
   const { data, count } = await query.range(from, to);
   const books = (data as Book[]) ?? [];
   const total = count ?? 0;
 
   // 필터/검색이 걸려 있으면 부분집합이라 전역 순서가 어긋날 수 있어 드래그 정렬을 막는다.
-  const reorderable = !sp.q && !sp.type && !sp.year;
+  const reorderable = !sp.q && !sp.type && !sp.year && !sp.status;
 
   // 필터 옵션
   const { data: allTypes } = await supabase.from("books").select("book_type");
@@ -50,7 +52,7 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
         <Link className="btn" href="/admin/books/new">+ 새 책 등록</Link>
       </div>
 
-      <form key={`${sp.q ?? ""}|${sp.type ?? ""}|${sp.year ?? ""}`} className="filter-bar" method="get">
+      <form key={`${sp.q ?? ""}|${sp.type ?? ""}|${sp.year ?? ""}|${sp.status ?? ""}`} className="filter-bar" method="get">
         <input type="text" name="q" placeholder="제목 검색" defaultValue={sp.q ?? ""} />
         <select name="type" defaultValue={sp.type ?? ""}>
           <option value="">전체 타입</option>
@@ -59,6 +61,11 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
         <select name="year" defaultValue={sp.year ?? ""}>
           <option value="">전체 연도</option>
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <select name="status" defaultValue={sp.status ?? ""}>
+          <option value="">노출 전체</option>
+          <option value="1">노출 중</option>
+          <option value="0">숨김</option>
         </select>
         <button className="btn" type="submit">검색</button>
         <a className="btn ghost" href="/admin/books">초기화</a>
@@ -74,7 +81,7 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
             page={page}
             pageSize={PAGE_SIZE}
             total={total}
-            params={{ q: sp.q, type: sp.type, year: sp.year }}
+            params={{ q: sp.q, type: sp.type, year: sp.year, status: sp.status }}
           />
         </>
       )}

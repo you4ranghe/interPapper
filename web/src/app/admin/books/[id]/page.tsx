@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BookForm from "@/components/admin/BookForm";
-import { updateBook, deleteBook } from "@/app/admin/actions";
+import { updateBook } from "@/app/admin/actions";
 import type { Book } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -22,12 +22,6 @@ export default async function EditBookPage({ params }: { params: Promise<{ id: s
       </div>
 
       <BookForm action={updateBook} initial={book} submitLabel="저장하기" />
-
-      <form action={deleteBook} className="danger-zone">
-        <input type="hidden" name="id" value={book.id} />
-        <span>이 책과 연결된 댓글도 함께 삭제됩니다.</span>
-        <button className="btn danger" type="submit">책 삭제</button>
-      </form>
     </div>
   );
 }

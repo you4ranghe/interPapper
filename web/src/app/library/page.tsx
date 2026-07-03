@@ -19,6 +19,7 @@ export default async function Home() {
     const { data } = await supabase
       .from("books")
       .select("id,title,cover_path,book_type,introduction")
+      .eq("is_published", true) // 미출간(숨김) 책은 서재에 노출하지 않음
       .order("sort_order", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });
     books = (data as BookListItem[]) ?? [];

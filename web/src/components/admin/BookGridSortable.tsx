@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Book } from "@/lib/types";
-import { reorderBooks } from "@/app/admin/actions";
+import { reorderBooks, setBookPublished } from "@/app/admin/actions";
 
 type Props = {
   books: Book[];
@@ -19,6 +19,7 @@ export default function BookGridSortable({ books, startIndex, reorderable }: Pro
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
   // 핸들러에서 항상 최신 순서를 읽기 위한 ref
   const itemsRef = useRef(items);
@@ -32,6 +33,24 @@ export default function BookGridSortable({ books, startIndex, reorderable }: Pro
   }, [books]);
 
   const navigate = (id: number) => router.push(`/admin/books/${id}`);
+
+  // 카드 스위치: 서재 노출/숨김을 즉시 반영(낙관적 업데이트 → 서버 확정).
+  const togglePublish = async (e: React.MouseEvent, b: Book) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (busyId != null) return;
+    const next = !b.is_published;
+    setBusyId(b.id);
+    setItems((prev) => prev.map((x) => (x.id === b.id ? { ...x, is_published: next } : x)));
+    const res = await setBookPublished(b.id, next);
+    setBusyId(null);
+    if (res.error) {
+      setItems((prev) => prev.map((x) => (x.id === b.id ? { ...x, is_published: !next } : x)));
+      alert("노출 상태 변경 실패: " + res.error);
+      return;
+    }
+    router.refresh();
+  };
 
   const persist = async (next: Book[]) => {
     const key = next.map((b) => b.id).join(",");
@@ -94,6 +113,7 @@ export default function BookGridSortable({ books, startIndex, reorderable }: Pro
               key={b.id}
               className={
                 "book-card" +
+                (b.is_published ? "" : " is-hidden") +
                 (dragIndex === i ? " is-dragging" : "") +
                 (overIndex === i && dragIndex !== i ? " is-over" : "")
               }
@@ -117,6 +137,21 @@ export default function BookGridSortable({ books, startIndex, reorderable }: Pro
                 {order > 0 && (
                   <span className="bc-order" title="노출 순서">{order}</span>
                 )}
+                <button
+                  type="button"
+                  className={`bc-toggle${b.is_published ? " on" : ""}`}
+                  role="switch"
+                  aria-checked={b.is_published}
+                  aria-label={b.is_published ? "서재에 노출 중 — 눌러서 숨김" : "서재에서 숨김 — 눌러서 노출"}
+                  title={b.is_published ? "노출 중 · 눌러서 숨김" : "숨김 · 눌러서 노출"}
+                  draggable={false}
+                  disabled={busyId === b.id}
+                  onClick={(e) => togglePublish(e, b)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  <span className="knob" aria-hidden />
+                  <span className="lbl">{b.is_published ? "노출" : "숨김"}</span>
+                </button>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={b.cover_path ?? "/covers/book1.svg"} alt={b.title} draggable={false} />
               </div>
@@ -127,7 +162,7 @@ export default function BookGridSortable({ books, startIndex, reorderable }: Pro
                   {b.published_year ? ` · ${b.published_year}` : ""}
                 </div>
                 <div className="bc-badges">
-                  {!b.is_published && <span className="bc-badge unpub">미출간</span>}
+                  {!b.is_published && <span className="bc-badge unpub">숨김</span>}
                   {(b.purchase_links ?? []).map((l, li) => (
                     <a
                       key={li}

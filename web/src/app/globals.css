@@ -2182,7 +2182,10 @@ body:has(.lib-page) .top-actions .pill-btn .who {
 }
 
 /* 책 카드 그리드 */
-.book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
+.book-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+@media (max-width: 1100px) { .book-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 860px)  { .book-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px)  { .book-grid { grid-template-columns: repeat(2, 1fr); } }
 .book-grid .book-card { animation: cardEnter .6s var(--ease-supa) both; }
 .book-grid .book-card:nth-child(1)  { animation-delay: .05s; }
 .book-grid .book-card:nth-child(2)  { animation-delay: .10s; }
@@ -2259,6 +2262,40 @@ body:has(.lib-page) .top-actions .pill-btn .who {
   pointer-events: none;
 }
 .book-card:hover .bc-order { opacity: 1; transform: none; }
+
+/* ── 노출/숨김 즉시 토글 스위치 ── */
+.bc-toggle {
+  position: absolute; top: 8px; right: 8px; z-index: 3;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 22px; padding: 0 9px 0 5px;
+  border-radius: 999px; cursor: pointer;
+  font-size: .68rem; font-weight: 600; line-height: 1; letter-spacing: .02em;
+  color: #cdbf9e;
+  background: rgba(12,9,5,.62);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  transition: color .2s var(--ease-out), border-color .2s var(--ease-out), background .2s var(--ease-out);
+}
+.bc-toggle .knob {
+  width: 10px; height: 10px; border-radius: 999px;
+  background: #8c7f66; box-shadow: 0 0 0 2px rgba(255,255,255,.06) inset;
+  transition: background .2s var(--ease-out), box-shadow .2s var(--ease-out);
+}
+.bc-toggle.on {
+  color: var(--gold-soft);
+  border-color: rgba(226,196,137,.4);
+}
+.bc-toggle.on .knob {
+  background: var(--gold-soft);
+  box-shadow: 0 0 8px rgba(226,196,137,.55);
+}
+.bc-toggle:hover { border-color: rgba(255,255,255,.28); }
+.bc-toggle:disabled { opacity: .55; cursor: progress; }
+
+/* 숨김 상태 카드: 표지를 흐리게 해서 한눈에 구분 */
+.book-card.is-hidden .bc-cover img { opacity: .38; filter: grayscale(.35); }
+
 .book-grid.is-sortable .book-card { cursor: grab; }
 .book-grid.is-sortable .book-card:active { cursor: grabbing; }
 .book-card.is-dragging {

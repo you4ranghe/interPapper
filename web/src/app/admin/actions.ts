@@ -125,15 +125,19 @@ export async function updateBook(_prev: ActionState, formData: FormData): Promis
   redirect("/admin/books");
 }
 
-export async function deleteBook(formData: FormData): Promise<void> {
-  const supabase = await requireAdmin();
-  const id = Number(formData.get("id"));
-  if (Number.isFinite(id)) {
-    await supabase.from("books").delete().eq("id", id);
-    revalidatePath("/admin/books");
-    revalidatePath("/");
+/** 서재 노출/숨김 즉시 토글 (리스트 카드 스위치). */
+export async function setBookPublished(id: number, next: boolean): Promise<ActionState> {
+  try {
+    const supabase = await requireAdmin();
+    if (!Number.isFinite(id)) return { error: "잘못된 책입니다." };
+    const { error } = await supabase.from("books").update({ is_published: next }).eq("id", id);
+    if (error) return { error: error.message };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "오류가 발생했습니다." };
   }
-  redirect("/admin/books");
+  revalidatePath("/admin/books");
+  revalidatePath("/");
+  return {};
 }
 
 /**
