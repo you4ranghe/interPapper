@@ -1,12 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { getUnreadSnapshot, markCommentRead, markCommentsRead } from "@/app/actions/notifications";
 import type { UnreadComment } from "@/lib/notifications";
 
 const POLL_MS = 30_000;
+
+// 하이드레이션 완료 감지 — SSR에선 false, 클라이언트에선 true (createPortal 안전 가드)
+const emptySubscribe = () => () => {};
+function useMounted(): boolean {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false);
+}
 
 function fmtRelative(iso: string): string {
   try {
@@ -31,10 +38,8 @@ export default function AdminNotifications() {
   const [items, setItems] = useState<UnreadComment[]>([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const mountedRef = useRef(true);
-
-  useEffect(() => { setMounted(true); }, []);
 
   const refresh = useCallback(async () => {
     const snap = await getUnreadSnapshot();
@@ -46,13 +51,25 @@ export default function AdminNotifications() {
   useEffect(() => {
     mountedRef.current = true;
     refresh();
-    const id = window.setInterval(refresh, POLL_MS);
+    const id = window.setInterval(refresh, POLL_MS); // Realtime 미설정/끊김 대비 폴백
     const onFocus = () => refresh();
     window.addEventListener("focus", onFocus);
+    // 새 댓글 INSERT 를 Realtime 으로 구독 — 폴링 지연 없이 즉시 알림 갱신.
+    // (Supabase 대시보드에서 comments 테이블에 Realtime 이 켜져 있어야 동작)
+    const supabase = createClient();
+    const channel = supabase
+      .channel("admin-new-comments")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "comments" },
+        () => refresh()
+      )
+      .subscribe();
     return () => {
       mountedRef.current = false;
       window.clearInterval(id);
       window.removeEventListener("focus", onFocus);
+      supabase.removeChannel(channel);
     };
   }, [refresh]);
 

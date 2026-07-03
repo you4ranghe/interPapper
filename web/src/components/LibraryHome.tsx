@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useSearchParams } from "next/navigation";
+import BookCover from "@/components/BookCover";
 import Coverflow from "@/components/Coverflow";
 import Discussion from "@/components/Discussion";
 import AuthorNote from "@/components/AuthorNote";
@@ -15,11 +17,12 @@ type Props = {
   books: BookListItem[];
   userId: string | null;
   userName: string | null;
+  userAvatarUrl?: string | null;
   emailVerified: boolean;
   isAdmin?: boolean;
 };
 
-export default function LibraryHome({ books, userId, userName, emailVerified, isAdmin = false }: Props) {
+export default function LibraryHome({ books, userId, userName, userAvatarUrl = null, emailVerified, isAdmin = false }: Props) {
   const supabase = createClient();
   const [book, setBook] = useState<Book | null>(null);
   const [comments, setComments] = useState<CommentNode[]>([]);
@@ -66,7 +69,12 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
   );
 
   const selectBook = useCallback(
-    async (id: number, opts?: { scrollTo?: "detail" | "discussion" }) => {
+    async (id: number, opts?: { scrollTo?: "detail" | "discussion"; updateUrl?: boolean }) => {
+      // URL에 책 id를 반영 — 링크 공유가 가능해지고, 뒤로가기로 서재로 돌아올 수 있다.
+      if (opts?.updateUrl !== false) {
+        lastDeepLinkRef.current = `${id}||`; // DeepLinkReader 가 같은 진입을 중복 처리하지 않도록
+        window.history.pushState(null, "", `/library?bookId=${id}`);
+      }
       // 낙관적 렌더: 목록에 이미 있는 정보로 카드를 즉시 보여주고 상세는 뒤따라 채움.
       const summary = books.find((b) => b.id === id);
       if (summary) {
@@ -113,14 +121,23 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
     [books, supabase, loadComments]
   );
 
-  // 알림 모달에서 ?bookId=...&discuss=1&hl=... 로 진입한 경우 자동으로 책을 펼침.
+  // 알림 모달·공유 링크·뒤로가기 등으로 ?bookId=... 가 바뀌면 자동으로 책을 펼침.
   const handleDeepLink = useCallback((bid: number, discuss: boolean, hl: number | null) => {
     const key = `${bid}|${discuss ? "1" : ""}|${hl ?? ""}`;
     if (lastDeepLinkRef.current === key) return;
     lastDeepLinkRef.current = key;
     setHighlightId(hl);
-    selectBook(bid, { scrollTo: discuss ? "discussion" : "detail" });
+    selectBook(bid, { scrollTo: discuss ? "discussion" : "detail", updateUrl: false });
   }, [selectBook]);
+
+  // 뒤로가기 등으로 URL에서 bookId가 사라지면 펼침을 닫고 서재 상태로 복귀.
+  const handleDeepLinkClear = useCallback(() => {
+    if (lastDeepLinkRef.current === "") return;
+    lastDeepLinkRef.current = "";
+    setRevealed(false);
+    setBook(null);
+    setHighlightId(null);
+  }, []);
 
   // 하이라이트 자동 해제
   useEffect(() => {
@@ -143,6 +160,19 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
     }
   }, [activeTab]);
 
+  // 그리드 ⇄ 슬라이드 전환 — 지원 브라우저에선 View Transition 으로 부드럽게 크로스페이드.
+  const toggleView = useCallback((next: boolean) => {
+    if (next === gridView) return;
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+    if (doc.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      doc.startViewTransition(() => {
+        flushSync(() => setGridView(next));
+      });
+    } else {
+      setGridView(next);
+    }
+  }, [gridView]);
+
   // 세그먼트형 토글 스위치: 두 라벨을 모두 보여주고, 활성 칸을 글래스 pill 이 미끄러지듯 표시.
   const viewToggle = (
     <div className="lib-segtoggle" role="tablist" aria-label="보기 방식">
@@ -154,7 +184,7 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
         aria-label="전체로 보기"
         title="전체로 보기"
         className={`lib-segbtn${gridView ? " active" : ""}`}
-        onClick={() => setGridView(true)}
+        onClick={() => toggleView(true)}
       >
         {/* 전체로 보기 — 격자 아이콘 */}
         <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -171,7 +201,7 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
         aria-label="슬라이드로 보기"
         title="슬라이드로 보기"
         className={`lib-segbtn${!gridView ? " active" : ""}`}
-        onClick={() => setGridView(false)}
+        onClick={() => toggleView(false)}
       >
         {/* 슬라이드로 보기 — 가운데 표지 + 양옆 표지가 비치는 코버플로우 아이콘 */}
         <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -270,12 +300,16 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
           {/* 책 소개 */}
           <section className="detail-section">
             {loading && !book ? (
-              <p className="lib-loading">책을 펼치는 중…</p>
+              <DetailSkeleton />
             ) : book ? (
               <div className="detail-card">
                 <div className="cover-col">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={book.cover_path ?? "/covers/book1.svg"} alt={`${book.title} 표지`} />
+                  <BookCover
+                    src={book.cover_path}
+                    alt={`${book.title} 표지`}
+                    sizes="(max-width: 768px) 82vw, 360px"
+                    priority
+                  />
                 </div>
                 <div className="text-col">
                   <p className="kicker">
@@ -283,7 +317,15 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
                     {book.published_year ? ` · ${book.published_year}` : ""}
                   </p>
                   <h2>{book.title}</h2>
-                  <div className="intro">{book.introduction}</div>
+                  {loading && !book.introduction ? (
+                    <div className="skel-lines" aria-hidden>
+                      <span className="skel-line" />
+                      <span className="skel-line" />
+                      <span className="skel-line short" />
+                    </div>
+                  ) : (
+                    <div className="intro">{book.introduction}</div>
+                  )}
                   {book.author_note && <AuthorNote key={book.id} text={book.author_note} />}
                   <button
                     className="to-discuss"
@@ -314,6 +356,7 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
                   comments={comments}
                   userId={userId}
                   userName={userName}
+                  userAvatarUrl={userAvatarUrl}
                   emailVerified={emailVerified}
                   isAdmin={isAdmin}
                   highlightId={highlightId}
@@ -328,25 +371,54 @@ export default function LibraryHome({ books, userId, userName, emailVerified, is
       <ScrollToTop />
 
       <Suspense fallback={null}>
-        <DeepLinkReader onDeepLink={handleDeepLink} />
+        <DeepLinkReader onDeepLink={handleDeepLink} onClear={handleDeepLinkClear} />
       </Suspense>
     </div>
   );
 }
 
-function DeepLinkReader({ onDeepLink }: { onDeepLink: (bid: number, discuss: boolean, hl: number | null) => void }) {
+function DeepLinkReader({
+  onDeepLink,
+  onClear,
+}: {
+  onDeepLink: (bid: number, discuss: boolean, hl: number | null) => void;
+  onClear: () => void;
+}) {
   const searchParams = useSearchParams();
   useEffect(() => {
     const bookIdRaw = searchParams.get("bookId");
-    if (!bookIdRaw) return;
+    if (!bookIdRaw) {
+      onClear(); // 뒤로가기 등으로 bookId 가 사라짐 → 펼침 닫기
+      return;
+    }
     const bid = Number(bookIdRaw);
     if (!Number.isFinite(bid)) return;
     const discuss = searchParams.get("discuss") === "1";
     const hlRaw = searchParams.get("hl");
     const hl = hlRaw && Number.isFinite(Number(hlRaw)) ? Number(hlRaw) : null;
     onDeepLink(bid, discuss, hl);
-  }, [searchParams, onDeepLink]);
+  }, [searchParams, onDeepLink, onClear]);
   return null;
+}
+
+// 책 상세가 열리는 동안 보여줄 스켈레톤 — 표지 자리 + 텍스트 라인 셔머
+function DetailSkeleton() {
+  return (
+    <div className="detail-card detail-skel" aria-label="책을 펼치는 중" aria-busy>
+      <div className="cover-col">
+        <span className="skel-cover" />
+      </div>
+      <div className="text-col">
+        <span className="skel-line kicker-w" />
+        <span className="skel-line title-w" />
+        <div className="skel-lines">
+          <span className="skel-line" />
+          <span className="skel-line" />
+          <span className="skel-line short" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function countAll(nodes: CommentNode[]): number {
@@ -387,8 +459,11 @@ function BookGridCard({ book, onOpen }: { book: BookListItem; onOpen: () => void
       }}
     >
       <div className="lib-card-cover">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={book.cover_path ?? "/covers/book1.svg"} alt={`${book.title} 표지`} loading="lazy" decoding="async" />
+        <BookCover
+          src={book.cover_path}
+          alt={`${book.title} 표지`}
+          sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 240px"
+        />
       </div>
       <div className="lib-card-body">
         {book.book_type && <p className="lib-card-kicker">{book.book_type}</p>}

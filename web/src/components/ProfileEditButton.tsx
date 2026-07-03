@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Avatar from "@/components/Avatar";
 
 type ProfileLite = {
   id: string;
@@ -12,7 +13,10 @@ type ProfileLite = {
   address: string | null;
   gender: string | null;
   bio: string | null;
+  avatar_url: string | null;
 };
+
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB
 
 const GENDERS: { value: string; label: string }[] = [
   { value: "na", label: "미지정" },
@@ -55,8 +59,13 @@ function ProfileModal({ profile, onClose }: { profile: ProfileLite; onClose: () 
   const [address, setAddress] = useState(profile.address ?? "");
   const [gender, setGender] = useState<string>(profile.gender ?? "na");
   const [bio, setBio] = useState(profile.bio ?? "");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url ?? null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(profile.avatar_url ?? null);
   const [err, setErr] = useState("");
   const [saving, setSaving] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -64,12 +73,56 @@ function ProfileModal({ profile, onClose }: { profile: ProfileLite; onClose: () 
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // 로컬 미리보기용 objectURL 정리
+  useEffect(() => () => {
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+  }, []);
+
+  function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setErr("이미지 파일만 등록할 수 있습니다."); return; }
+    if (file.size > MAX_AVATAR_BYTES) { setErr("이미지는 5MB 이하만 등록할 수 있습니다."); return; }
+    setErr("");
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    const url = URL.createObjectURL(file);
+    objectUrlRef.current = url;
+    setAvatarFile(file);
+    setPreview(url);
+  }
+
+  function removeAvatar() {
+    if (objectUrlRef.current) { URL.revokeObjectURL(objectUrlRef.current); objectUrlRef.current = null; }
+    setAvatarFile(null);
+    setPreview(null);
+    setAvatarUrl(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
     const trimmedName = name.trim();
     if (!trimmedName) { setErr("성함을 입력하세요."); return; }
     setSaving(true);
+
+    // 새 이미지를 골랐으면 avatars 버킷에 업로드하고 공개 URL 획득
+    let nextAvatarUrl = avatarUrl;
+    if (avatarFile) {
+      const ext = (avatarFile.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${profile.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, avatarFile, { upsert: true, contentType: avatarFile.type });
+      if (upErr) {
+        setSaving(false);
+        setErr(upErr.message || "이미지 업로드에 실패했습니다.");
+        return;
+      }
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      nextAvatarUrl = pub.publicUrl;
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -77,6 +130,7 @@ function ProfileModal({ profile, onClose }: { profile: ProfileLite; onClose: () 
         address: address.trim() || null,
         gender,
         bio: bio.trim() || null,
+        avatar_url: nextAvatarUrl,
       })
       .eq("id", profile.id);
     setSaving(false);
@@ -97,6 +151,27 @@ function ProfileModal({ profile, onClose }: { profile: ProfileLite; onClose: () 
           <button type="button" className="profile-close" onClick={onClose} aria-label="닫기">✕</button>
         </div>
         <form className="profile-form" onSubmit={handleSave}>
+          <div className="profile-avatar-field">
+            <Avatar src={preview} name={name || profile.email} size={92} className="profile-avatar-preview" />
+            <div className="profile-avatar-actions">
+              <button type="button" className="btn secondary sm" onClick={() => fileRef.current?.click()}>
+                {preview ? "이미지 변경" : "이미지 등록"}
+              </button>
+              {preview && (
+                <button type="button" className="profile-avatar-remove" onClick={removeAvatar}>
+                  제거
+                </button>
+              )}
+              <p className="profile-avatar-hint">JPG·PNG, 5MB 이하</p>
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={onPickAvatar}
+              hidden
+            />
+          </div>
           <label>
             성함
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} required />

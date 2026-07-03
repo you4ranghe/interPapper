@@ -104,13 +104,19 @@ This project uses Next.js 16.2.6, which has significant differences from older v
 All UI work must follow the **Supernova design system**:
 - **Design Rules**: `.cursor/rules/ui-design.mdc` (auto-loaded in Cursor IDE)
 - **Configured in Claude**: `.claude/settings.json` (claudeMd field, auto-loaded in Claude CLI)
-- Key principles:
-  - Double-Bezel styling (subtle borders + shadows for depth)
-  - Glassmorphism (backdrop-blur + white/10 overlay)
-  - Pretendard font for Korean text
-  - Smooth Spring-physics hover animations (scale, shadow)
-  - High-end dark mode or warm-white tones only
-  - No primary colors; 1–2 subtle accent colors max
+- Key principles (2026-07 리뉴얼 이후):
+  - Calm warm-gray palette: warm off-white bg (#faf8f5–#f4f1ec), white #fff cards, #26231f ink, hairline borders (#e4dfd7)
+  - Single accent color: warm charcoal #4a443e (links, primary buttons, focus, active tabs) — no gold, no blue
+  - Cards sit on the warm-gray background with hairline borders (white book covers must not blend into the surface)
+  - Pretendard for UI/body; Gowun Batang serif only for book titles/site title
+  - Subtle shadows (--shadow-1/--shadow-2 tokens in styles/base.css)
+  - Smooth spring-physics animations (kept from previous design)
+  - Landing page (/) keeps its dark video hero
+  - Dark mode ("시력 보호", warm amber): bg #1e1a16, cards #27221e, ink #e9e2d6, accent sand #d8c8ab.
+    Implemented with CSS `light-dark()` + `color-scheme`; `html[data-theme]` is set pre-paint by an inline
+    script in layout.tsx (?theme= param > localStorage > OS preference). Toggle = `ThemeToggle` component.
+    Dark-only literal fixes live in `styles/dark.css`.
+  - CSS is split by role under `web/src/app/styles/` and imported from globals.css (order matters)
 
 ### Authentication
 

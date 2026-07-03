@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient as createSbClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
@@ -86,7 +87,7 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
           <option value="admin">관리자</option>
         </select>
         <button className="btn" type="submit">검색</button>
-        <a className="btn ghost" href="/admin/members">초기화</a>
+        <Link className="btn ghost" href="/admin/members">초기화</Link>
       </form>
 
       {members.length === 0 ? (

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import BookCover from "@/components/BookCover";
 import type { Book } from "@/lib/types";
 import { reorderBooks, setBookPublished } from "@/app/admin/actions";
 
@@ -21,14 +22,20 @@ export default function BookGridSortable({ books, startIndex, reorderable }: Pro
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
 
-  // 핸들러에서 항상 최신 순서를 읽기 위한 ref
+  // 핸들러에서 항상 최신 순서를 읽기 위한 ref — 렌더 후 effect 에서 동기화
   const itemsRef = useRef(items);
-  itemsRef.current = items;
-  const savedKeyRef = useRef<string>("");
-
-  // 서버에서 새 목록이 내려오면 동기화
   useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+  const savedKeyRef = useRef<string>(books.map((b) => b.id).join(","));
+
+  // 서버에서 새 목록이 내려오면 동기화 — 렌더 중 조건부 setState(React 권장 'props 로부터 상태 조정' 패턴)
+  const [syncedBooks, setSyncedBooks] = useState(books);
+  if (syncedBooks !== books) {
+    setSyncedBooks(books);
     setItems(books);
+  }
+  useEffect(() => {
     savedKeyRef.current = books.map((b) => b.id).join(",");
   }, [books]);
 
@@ -152,8 +159,7 @@ export default function BookGridSortable({ books, startIndex, reorderable }: Pro
                   <span className="knob" aria-hidden />
                   <span className="lbl">{b.is_published ? "노출" : "숨김"}</span>
                 </button>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={b.cover_path ?? "/covers/book1.svg"} alt={b.title} draggable={false} />
+                <BookCover src={b.cover_path} alt={b.title} sizes="200px" draggable={false} />
               </div>
               <div className="bc-meta">
                 <div className="bc-title">{b.title}</div>

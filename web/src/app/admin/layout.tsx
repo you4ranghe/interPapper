@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import AdminNav from "@/components/AdminNav";
 import LogoutButton from "@/components/LogoutButton";
+import ThemeToggle from "@/components/ThemeToggle";
 import TopBarMenu from "@/components/TopBarMenu";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
           <AdminNav />
           <div className="admin-user">
+            <ThemeToggle />
             <span className="who">{session.profile?.name || session.email}</span>
             <LogoutButton />
           </div>

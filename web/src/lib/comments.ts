@@ -2,7 +2,7 @@ import type { CommentNode } from "./types";
 
 // comment_reads도 profiles에 FK를 가져 'profiles' 임베드가 모호해짐 → FK 이름을 명시.
 export const COMMENT_SELECT =
-  "id,book_id,parent_id,author_id,content,hidden,created_at,edited_at, profiles!comments_author_id_fkey(name)";
+  "id,book_id,parent_id,author_id,content,hidden,created_at,edited_at, profiles!comments_author_id_fkey(name,avatar_url)";
 
 export type RawComment = {
   id: number;
@@ -13,7 +13,7 @@ export type RawComment = {
   hidden: boolean;
   created_at: string;
   edited_at: string | null;
-  profiles: { name: string | null } | null;
+  profiles: { name: string | null; avatar_url: string | null } | null;
 };
 
 /** 평면 댓글 목록(작성순)을 부모-자식 트리로 조립. */
@@ -27,6 +27,7 @@ export function buildCommentTree(rows: RawComment[]): CommentNode[] {
       parent_id: r.parent_id,
       author_id: r.author_id,
       author_name: r.profiles?.name || "익명",
+      author_avatar_url: r.profiles?.avatar_url ?? null,
       content: r.content,
       hidden: r.hidden,
       created_at: r.created_at,

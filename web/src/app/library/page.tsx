@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
+import { getPublishedBooks } from "@/lib/books";
 import LibraryHome from "@/components/LibraryHome";
 import LogoutButton from "@/components/LogoutButton";
 import AdminNotifications from "@/components/AdminNotifications";
 import ProfileEditButton from "@/components/ProfileEditButton";
+import ThemeToggle from "@/components/ThemeToggle";
 import TopBarMenu from "@/components/TopBarMenu";
 import type { BookListItem } from "@/lib/types";
 
@@ -13,16 +14,10 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const session = await getSession();
 
+  // 태그 캐시된 공개 책 목록 — 관리자 변경 시 revalidateTag("books")로 즉시 갱신
   let books: BookListItem[] = [];
   try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("books")
-      .select("id,title,cover_path,book_type,introduction")
-      .eq("is_published", true) // 미출간(숨김) 책은 서재에 노출하지 않음
-      .order("sort_order", { ascending: true, nullsFirst: false })
-      .order("created_at", { ascending: false });
-    books = (data as BookListItem[]) ?? [];
+    books = await getPublishedBooks();
   } catch {
     books = [];
   }
@@ -30,6 +25,7 @@ export default async function Home() {
   return (
     <>
       <div className="top-bar">
+        <ThemeToggle />
         <TopBarMenu>
         {session.userId && session.isAdmin && (
           <div className="admin-actions">
@@ -54,6 +50,7 @@ export default async function Home() {
                   address: session.profile?.address ?? null,
                   gender: session.profile?.gender ?? null,
                   bio: session.profile?.bio ?? null,
+                  avatar_url: session.profile?.avatar_url ?? null,
                 }}
               />
               <LogoutButton />
@@ -87,6 +84,7 @@ export default async function Home() {
         books={books}
         userId={session.userId}
         userName={session.profile?.name ?? null}
+        userAvatarUrl={session.profile?.avatar_url ?? null}
         emailVerified={session.emailVerified}
         isAdmin={session.isAdmin}
       />

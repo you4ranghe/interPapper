@@ -30,6 +30,7 @@ export type Profile = {
   address: string | null;
   gender: "male" | "female" | "other" | "na" | null;
   bio: string | null;
+  avatar_url: string | null; // 프로필 이미지 (Storage 공개 URL) — 없으면 사람 아이콘 대체
   role: "member" | "admin";
   created_at: string;
 };
@@ -40,6 +41,7 @@ export type CommentNode = {
   parent_id: number | null;
   author_id: string;
   author_name: string;
+  author_avatar_url: string | null; // 작성자 프로필 이미지 — 없으면 사람 아이콘 대체
   content: string;
   hidden: boolean;
   created_at: string;

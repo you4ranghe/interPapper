@@ -1,51 +1,48 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
+import BookCover from "@/components/BookCover";
 import LogoutButton from "@/components/LogoutButton";
+import ThemeToggle from "@/components/ThemeToggle";
 import Discussion from "@/components/Discussion";
-import type { Book, CommentNode } from "@/lib/types";
+import { buildCommentTree, COMMENT_SELECT, type RawComment } from "@/lib/comments";
+import type { Book } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type RawComment = {
-  id: number;
-  book_id: number;
-  parent_id: number | null;
-  author_id: string;
-  content: string;
-  hidden: boolean;
-  created_at: string;
-  edited_at: string | null;
-  profiles: { name: string | null } | null;
-};
+type PageProps = { params: Promise<{ id: string }> };
 
-function buildTree(rows: RawComment[]): CommentNode[] {
-  const byId = new Map<number, CommentNode>();
-  const roots: CommentNode[] = [];
-  for (const r of rows) {
-    byId.set(r.id, {
-      id: r.id,
-      book_id: r.book_id,
-      parent_id: r.parent_id,
-      author_id: r.author_id,
-      author_name: r.profiles?.name || "익명",
-      content: r.content,
-      hidden: r.hidden,
-      created_at: r.created_at,
-      edited_at: r.edited_at,
-      children: [],
-    });
-  }
-  for (const r of rows) {
-    const node = byId.get(r.id)!;
-    if (r.parent_id && byId.has(r.parent_id)) byId.get(r.parent_id)!.children.push(node);
-    else roots.push(node);
-  }
-  return roots;
+// 링크 공유(카톡 등) 시 책 제목·소개·표지가 미리보기로 뜨도록 OG 메타데이터 생성
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const bookId = Number(id);
+  if (!Number.isFinite(bookId)) return {};
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("books")
+    .select("title,introduction,cover_path")
+    .eq("id", bookId)
+    .maybeSingle();
+  if (!data) return {};
+
+  const title = `${data.title} · 아버지의 서재`;
+  const description = (data.introduction ?? "").replace(/\s+/g, " ").trim().slice(0, 160);
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "book",
+      images: data.cover_path ? [{ url: data.cover_path }] : undefined,
+    },
+  };
 }
 
-export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
   const bookId = Number(id);
   if (!Number.isFinite(bookId)) notFound();
@@ -63,16 +60,17 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
   const { data: rows } = await supabase
     .from("comments")
-    .select("id,book_id,parent_id,author_id,content,hidden,created_at,edited_at, profiles!comments_author_id_fkey(name)")
+    .select(COMMENT_SELECT)
     .eq("book_id", bookId)
     .order("created_at", { ascending: true });
 
-  const tree = buildTree((rows as unknown as RawComment[]) ?? []);
+  const tree = buildCommentTree((rows as unknown as RawComment[]) ?? []);
   const count = (rows ?? []).length;
 
   return (
     <div className="detail-page">
       <div className="top-actions">
+        <ThemeToggle />
         <Link className="pill-btn" href="/library">← 서재로</Link>
         {session.userId ? (
           <>
@@ -91,8 +89,12 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
       <section className="detail-section">
         <div className="detail-card">
           <div className="cover-col">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={b.cover_path ?? "/covers/book1.svg"} alt={`${b.title} 표지`} />
+            <BookCover
+              src={b.cover_path}
+              alt={`${b.title} 표지`}
+              sizes="(max-width: 768px) 82vw, 360px"
+              priority
+            />
           </div>
           <div className="text-col">
             <p className="kicker">{b.book_type ?? "Book"}{b.published_year ? ` · ${b.published_year}` : ""}</p>
@@ -121,6 +123,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
             comments={tree}
             userId={session.userId}
             userName={session.profile?.name ?? null}
+            userAvatarUrl={session.profile?.avatar_url ?? null}
             emailVerified={session.emailVerified}
           />
         </div>

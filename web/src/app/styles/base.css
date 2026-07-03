@@ -1,0 +1,84 @@
+
+:root {
+  /* 라이트=차분한 웜그레이(original) / 다크=웜 앰버 서재(시력 보호).
+     light-dark() 는 color-scheme 값에 따라 자동 선택된다. */
+  color-scheme: light;
+
+  /* ── 팔레트: 웜그레이 + 웜 차콜(라이트) ⇄ 웜 브라운그레이 + 샌드(다크) ── */
+  --accent:       light-dark(#4a443e, #d8c8ab);  /* 링크/버튼/포커스 전용 포인트 */
+  --accent-strong:light-dark(#38332e, #e6dac4);
+  --accent-tint:  light-dark(#edeae3, rgba(216,200,171,.13));  /* 선택 칩/하이라이트 배경 */
+  --bg:           light-dark(#faf8f5, #1e1a16);  /* 페이지 바탕 */
+  --bg-soft:      light-dark(#f4f1ec, #241f1b);
+  --line:         light-dark(#e4dfd7, #3a342d);  /* 헤어라인 보더 */
+  --shadow-1: 0 1px 2px light-dark(rgba(64,58,52,.12), rgba(0,0,0,.45)), 0 1px 3px 1px light-dark(rgba(64,58,52,.08), rgba(0,0,0,.30));
+  --shadow-2: 0 4px 12px light-dark(rgba(64,58,52,.14), rgba(0,0,0,.50)), 0 1px 3px light-dark(rgba(64,58,52,.10), rgba(0,0,0,.35));
+
+  /* ── 구버전 토큰 별칭 — 기존 규칙이 참조하므로 값만 재정의 ── */
+  --gold:      light-dark(#4a443e, #d8c8ab);  /* 과거 골드 액센트 → 차콜/샌드 */
+  --gold-soft: light-dark(#38332e, #e6dac4);
+  --gold-dim:  light-dark(#6b655c, #a49a8c);
+  --paper:     light-dark(#26231f, #e9e2d6);  /* 잉크(글자) */
+  --ink:       light-dark(#26231f, #e9e2d6);
+  --espresso:  light-dark(#f4f1ec, #241f1b);
+
+  --ease-spring: cubic-bezier(.34, 1.18, .42, 1);
+  --ease-out:    cubic-bezier(.22, .7, .24, 1);
+  /* supanova 표준 스프링: 매끄러운 감속 */
+  --ease-supa:   cubic-bezier(.16, 1, .3, 1);
+  --font-display: var(--font-gowun, "Gowun Batang"), Georgia, serif;      /* 책 제목 전용 (next/font 셀프호스팅) */
+  --font-body: "Pretendard Variable", "Pretendard", system-ui, sans-serif; /* 본문/UI */
+  --focus-ring: 0 0 0 3px light-dark(rgba(74,68,62,.28), rgba(216,200,171,.30));
+}
+
+/* 시력 보호 다크모드 — layout 인라인 스크립트가 data-theme 을 세팅 */
+html[data-theme="dark"] { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ===== 한국어 타이포 기본값 (word-break keep-all) ===== */
+:where(p, h1, h2, h3, h4, h5, h6, li, dt, dd, blockquote, span, button, a, label, figcaption) {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 키보드 포커스만 보이는 링 — 마우스 클릭에선 숨김 */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 8px;
+}
+
+/* 서체 위계: UI는 산세리프, '책'을 가리키는 자리만 바탕체(서재의 정체성) */
+h1, h2, h3 { font-family: var(--font-body); letter-spacing: -.01em; }
+.site-header h1, .cf-caption .t,
+.detail-card h2, .author-note {
+  font-family: var(--font-display);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font-body);
+  font-feature-settings: "ss01", "ss02", "tnum", "calt";
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  color: var(--ink);
+  background: var(--bg);
+}

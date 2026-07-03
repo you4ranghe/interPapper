@@ -1,0 +1,36 @@
+/* ============================================================
+   메인 페이지 — 차분한 웜그레이 스코프 (/library 전용 시안)
+   .lib-page 안에서만 적용. 인증/admin 등 다른 라우트는 영향 없음.
+   흰 책 표지가 배경과 겹치지 않도록: 바탕=웜그레이, 카드=화이트.
+   ============================================================ */
+.lib-page {
+  --paper-1: #ffffff;   /* 카드/서피스 */
+  --paper-2: #f4f1ec;   /* 페이지 바탕 (웜그레이) */
+  --paper-3: #eae6df;
+  --ink:       #26231f;
+  --ink-soft:  color-mix(in oklch, #26231f, transparent 28%);
+  --ink-mute:  color-mix(in oklch, #26231f, transparent 50%);
+  --clay:      #4a443e;  /* 포인트 1색 — 웜 차콜 (변수명은 호환 유지) */
+  --clay-soft: color-mix(in oklch, #4a443e, white 28%);
+  --clay-tint: color-mix(in oklch, #4a443e, white 90%);
+  --line:      #e4dfd7;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --shadow-soft: 0 1px 2px rgba(64,58,52,.08), 0 8px 24px -12px rgba(64,58,52,.14);
+  --shadow-warm: 0 1px 3px rgba(64,58,52,.08), 0 12px 32px -16px rgba(64,58,52,.16);
+  /* 포커스 링 (lib-page 톤) */
+  --focus-ring-clay: 0 0 0 3px rgba(74,68,62,.24);
+
+  position: relative;
+  z-index: 2;
+  min-height: 100dvh;
+  color: var(--ink);
+  font-weight: 400;
+  background: linear-gradient(180deg, #f6f3ef 0%, var(--paper-2) 55%, #f1ede7 100%);
+}
+
+/* (전역 토큰이 웜그레이로 통일되어, 이 페이지 한정 오버라이드는 더 이상 필요 없음) */
+
+/* lib-page 내부 컨텐츠 스택 유지 */
+.lib-page > * { position: relative; z-index: 2; }

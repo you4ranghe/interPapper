@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import BookCover from "@/components/BookCover";
 import type { BookSummary } from "@/lib/types";
 
 const mod = (a: number, m: number) => ((a % m) + m) % m;
@@ -187,8 +188,12 @@ export default function Coverflow({
                 }
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={book.cover_path ?? "/covers/book1.svg"} alt={`${book.title} 표지`} />
+              <BookCover
+                src={book.cover_path}
+                alt={`${book.title} 표지`}
+                sizes="(max-width: 760px) 60vw, 320px"
+                draggable={false}
+              />
             </article>
           );
         })}

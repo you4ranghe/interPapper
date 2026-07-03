@@ -1,0 +1,236 @@
+/* ============================================================
+   시력 보호 다크모드 — 웜 앰버 서재 (파일럿: /library 만)
+   원칙: 순수 블랙/순백 금지, 웜 휴(저블루라이트), 대비 ~12:1.
+   html[data-theme="dark"] 에서만 활성. 라이트는 기존(original) 그대로.
+   ============================================================ */
+
+/* ── 테마 토글 버튼 (양쪽 테마 공통) ── */
+.theme-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 999px;
+  background: light-dark(#ffffff, #27221e);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  transition: transform .22s var(--ease-spring), background .22s, border-color .22s, color .22s;
+}
+.theme-btn svg { width: 18px; height: 18px; }
+.theme-btn:hover { transform: translateY(-1px) scale(1.05); color: var(--accent-strong); }
+.theme-btn:active { transform: scale(.95); }
+.theme-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* ── 다크 토큰: /library 페이지 전체 (상단바·모달 포함) ── */
+html[data-theme="dark"] body:has(.lib-page) {
+  --accent:        #d8c8ab;  /* 샌드 베이지 */
+  --accent-strong: #e6dac4;
+  --accent-tint:   rgba(216,200,171,.13);
+  --line:          #3a342d;
+  --bg:            #1e1a16;
+  --bg-soft:       #241f1b;
+  --ink:           #e9e2d6;
+  --paper:         #e9e2d6;
+  --gold:          #d8c8ab;
+  --gold-soft:     #e6dac4;
+  --gold-dim:      #a49a8c;
+  --focus-ring: 0 0 0 3px rgba(216,200,171,.30);
+  --shadow-1: 0 1px 2px rgba(0,0,0,.45), 0 1px 3px 1px rgba(0,0,0,.30);
+  --shadow-2: 0 4px 14px rgba(0,0,0,.50), 0 1px 3px rgba(0,0,0,.35);
+}
+html[data-theme="dark"] .lib-page {
+  --paper-1: #27221e;  /* 카드/서피스 */
+  --paper-2: #1e1a16;  /* 페이지 바탕 */
+  --paper-3: #171310;  /* 표지 프레임 바닥 */
+  --ink:       #e9e2d6;
+  --ink-soft:  color-mix(in oklch, #e9e2d6, transparent 24%);
+  --ink-mute:  color-mix(in oklch, #e9e2d6, transparent 44%);
+  --clay:      #d8c8ab;
+  --clay-soft: color-mix(in oklch, #d8c8ab, white 12%);
+  --clay-tint: rgba(216,200,171,.14);
+  --line:      #3a342d;
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -12px rgba(0,0,0,.5);
+  --shadow-warm: 0 1px 3px rgba(0,0,0,.4), 0 14px 34px -16px rgba(0,0,0,.55);
+  --focus-ring-clay: 0 0 0 3px rgba(216,200,171,.28);
+  background: linear-gradient(180deg, #221d18 0%, var(--paper-2) 55%, #191512 100%);
+}
+
+/* ── 라이트 리터럴을 쓰는 표면들 다크 재지정 ── */
+
+/* 인셋 화이트 하이라이트 제거 + 다크 서피스: 캡션 pill / 내비 / Top 버튼 / 세그토글 */
+html[data-theme="dark"] .lib-page .cf-caption .pill {
+  background: var(--paper-1);
+  box-shadow: inset 0 0 0 1px var(--line), 0 18px 36px -18px rgba(0,0,0,.6);
+}
+html[data-theme="dark"] .lib-page .cf-nav {
+  background: var(--paper-1);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 24px -12px rgba(0,0,0,.5);
+}
+html[data-theme="dark"] .lib-page .cf-nav:hover {
+  background: #2e2823;
+  color: var(--clay);
+  box-shadow: 0 14px 28px -10px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] .lib-page .cf-item img {
+  box-shadow: 0 18px 36px -12px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] .lib-page .cf-item.pos-0 img {
+  box-shadow: 0 30px 60px -16px rgba(0,0,0,.6), 0 0 0 1px var(--line);
+}
+html[data-theme="dark"] .to-top-fab {
+  background: var(--paper-1, #27221e);
+  border-color: var(--line, #3a342d);
+  box-shadow: 0 14px 30px -10px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] .to-top-fab:hover {
+  background: var(--clay, #d8c8ab);
+  color: #26231f;
+  box-shadow: 0 18px 34px -10px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] .lib-segtoggle {
+  background: var(--paper-1);
+  border-color: var(--line);
+  box-shadow: var(--shadow-soft);
+}
+
+/* 상단바 캡슐 + pill 버튼 */
+html[data-theme="dark"] body:has(.lib-page) .top-actions,
+html[data-theme="dark"] body:has(.lib-page) .admin-actions {
+  background: rgba(39,34,30,.92);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 26px -12px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] body:has(.lib-page) .top-actions .pill-btn,
+html[data-theme="dark"] body:has(.lib-page) .admin-actions .pill-btn {
+  color: var(--ink);
+}
+html[data-theme="dark"] body:has(.lib-page) .top-actions .pill-btn:hover,
+html[data-theme="dark"] body:has(.lib-page) .admin-actions .pill-btn:hover {
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+}
+html[data-theme="dark"] body:has(.lib-page) .top-actions .pill-btn.solid,
+html[data-theme="dark"] body:has(.lib-page) .admin-actions .pill-btn.solid {
+  background: var(--accent);
+  color: #26231f;
+  box-shadow: none;
+}
+html[data-theme="dark"] body:has(.lib-page) .top-actions .pill-btn.solid:hover,
+html[data-theme="dark"] body:has(.lib-page) .admin-actions .pill-btn.solid:hover {
+  background: var(--accent-strong);
+  color: #26231f;
+  box-shadow: none;
+}
+html[data-theme="dark"] body:has(.lib-page) .top-actions .pill-btn .who {
+  color: var(--ink-mute, rgba(233,226,214,.6));
+}
+/* 모바일 햄버거/드롭다운 */
+html[data-theme="dark"] body:has(.lib-page) .topbar-burger {
+  background: var(--paper-1, #27221e);
+  border-color: var(--line, #3a342d);
+}
+html[data-theme="dark"] body:has(.lib-page) .topbar-burger .bar { background: #e9e2d6; }
+html[data-theme="dark"] body:has(.lib-page) .topbar-menu.open .topbar-items {
+  background: #27221e;
+  border-color: var(--line);
+}
+html[data-theme="dark"] body:has(.lib-page) .topbar-menu.open .topbar-items .pill-btn,
+html[data-theme="dark"] body:has(.lib-page) .topbar-menu.open .topbar-items .who-btn,
+html[data-theme="dark"] body:has(.lib-page) .topbar-menu.open .topbar-items .bell-btn {
+  color: #e9e2d6;
+}
+
+/* 검색 */
+html[data-theme="dark"] .lib-page .lib-search-input {
+  background: var(--paper-1);
+  color: var(--ink);
+  border-color: var(--line);
+  box-shadow: none;
+}
+html[data-theme="dark"] .lib-page .lib-search-input::placeholder { color: #8f8779; }
+html[data-theme="dark"] .lib-page .lib-search-input:focus {
+  border-color: var(--clay);
+  box-shadow: 0 0 0 3px rgba(216,200,171,.18);
+}
+html[data-theme="dark"] .lib-page .lib-search-status { color: #a49a8c; }
+html[data-theme="dark"] .lib-page .lib-search-status.miss { color: #8f8779; }
+
+/* 카드 그림자(다크에선 더 깊게) */
+html[data-theme="dark"] .lib-page .lib-card {
+  box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 16px 36px -20px rgba(0,0,0,.55);
+}
+html[data-theme="dark"] .lib-page .lib-card:hover {
+  border-color: color-mix(in oklch, var(--clay), transparent 55%);
+  box-shadow: 0 26px 50px -20px rgba(0,0,0,.6);
+}
+
+/* 상세(책 소개) — core.css 리터럴 텍스트 컬러 보정 */
+html[data-theme="dark"] .lib-page .detail-card { box-shadow: 0 24px 60px -28px rgba(0,0,0,.55); }
+html[data-theme="dark"] .lib-page .detail-card .kicker { color: #a49a8c; }
+html[data-theme="dark"] .lib-page .detail-card .intro { color: #d6cec0; }
+html[data-theme="dark"] .lib-page .author-note { color: #d6cec0; border-left-color: var(--clay); }
+html[data-theme="dark"] .lib-page .author-note .label { color: #a49a8c; }
+html[data-theme="dark"] .lib-page .to-discuss {
+  background: var(--paper-1);
+  color: var(--ink);
+  border-color: var(--line);
+  box-shadow: none;
+}
+html[data-theme="dark"] .lib-page .to-discuss:hover { background: #2e2823; }
+html[data-theme="dark"] .lib-page .detail-card .cover-col img {
+  box-shadow: 0 0 0 1px var(--line), 0 22px 44px -18px rgba(0,0,0,.55);
+}
+
+/* 토론 — core.css 리터럴 보정 */
+html[data-theme="dark"] .lib-page .discuss-head .sub { color: #a49a8c; }
+html[data-theme="dark"] .lib-page .c-body { color: #d6cec0; }
+html[data-theme="dark"] .lib-page .c-time { color: #8f8779; }
+html[data-theme="dark"] .lib-page .c-hidden { color: #26231f; background: #8f8779; }
+html[data-theme="dark"] .lib-page .discussion .empty { color: #8f8779; }
+html[data-theme="dark"] .lib-page .comment-form {
+  background: var(--paper-1);
+  border-color: var(--line);
+}
+html[data-theme="dark"] .lib-page .comment-form textarea {
+  background: #1e1a16;
+  color: var(--ink);
+  border-color: var(--line);
+}
+html[data-theme="dark"] .lib-page .comment-form textarea:focus {
+  border-color: var(--clay);
+  box-shadow: 0 0 0 3px rgba(216,200,171,.18);
+}
+html[data-theme="dark"] .lib-page .btn { background: var(--accent); color: #26231f; }
+html[data-theme="dark"] .lib-page .btn:hover { background: var(--accent-strong); }
+html[data-theme="dark"] .lib-page .btn.secondary {
+  background: var(--paper-1); color: var(--ink); border: 1px solid var(--line);
+}
+html[data-theme="dark"] .lib-page .btn.secondary:hover { background: #2e2823; }
+html[data-theme="dark"] .lib-page .gate { color: #a49a8c; border-color: #4a443c; }
+
+/* ── 전체 적용 후 잔여 디테일 보정 ── */
+/* 폼 요소는 일부 환경에서 light-dark() 해석이 어긋나므로 다크 값을 명시 강제 */
+html[data-theme="dark"] :is(input, textarea, select) {
+  background-color: #27221e;
+  border-color: #453f38;
+  color: #e9e2d6;
+}
+html[data-theme="dark"] :is(input, textarea)::placeholder { color: #8f8779; }
+
+/* 관리자 노출/숨김 스위치 노브: 다크 트랙 위에서도 또렷하게 */
+html[data-theme="dark"] .hswitch-knob { background: #8f8779; }
+html[data-theme="dark"] .hswitch.on .hswitch-knob { background: #97cfa3; }
+/* 표지 업로드 미리보기 placeholder */
+html[data-theme="dark"] .cover-preview { background: #171310; }
+
+/* 스켈레톤 셔머 — 다크에선 밝은 셔머로 */
+html[data-theme="dark"] .lib-page .skel-cover,
+html[data-theme="dark"] .lib-page .skel-line {
+  background: linear-gradient(
+    100deg,
+    rgba(233,226,214,.07) 40%,
+    rgba(233,226,214,.13) 50%,
+    rgba(233,226,214,.07) 60%
+  );
+  background-size: 200% 100%;
+}

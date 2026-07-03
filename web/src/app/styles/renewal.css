@@ -1,0 +1,46 @@
+/* ============================================================
+   리뉴얼 추가 스타일
+   - 책 상세 스켈레톤(셔머)
+   - 낙관적(등록 중) 댓글 표시
+   - 그리드 ⇄ 슬라이드 View Transition
+   ============================================================ */
+
+/* ── 책 상세 스켈레톤 — .lib-page 라이트 페이퍼 위에서 사용 ── */
+.skel-cover,
+.skel-line {
+  display: block;
+  border-radius: 10px;
+  background: linear-gradient(
+    100deg,
+    rgba(64,58,52,.08) 40%,
+    rgba(64,58,52,.15) 50%,
+    rgba(64,58,52,.08) 60%
+  );
+  background-size: 200% 100%;
+  animation: skelShimmer 1.4s ease-in-out infinite;
+}
+.skel-cover { width: 100%; aspect-ratio: 3 / 4; border-radius: var(--radius-sm, 12px); }
+.skel-lines { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.skel-line { height: 14px; width: 100%; }
+.skel-line.short { width: 62%; }
+.skel-line.kicker-w { width: 90px; height: 10px; }
+.skel-line.title-w { width: 55%; height: 26px; margin-top: 12px; }
+
+@keyframes skelShimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ── 등록 중(낙관적) 댓글 — 서버 확정 전까지 반투명으로 ── */
+.comment.is-pending { opacity: .55; }
+
+/* ── 그리드 ⇄ 슬라이드 전환 크로스페이드 속도 ── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .35s;
+  animation-timing-function: var(--ease-supa);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel-cover, .skel-line { animation: none; }
+}

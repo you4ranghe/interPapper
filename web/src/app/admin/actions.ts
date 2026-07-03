@@ -1,7 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { BOOKS_TAG } from "@/lib/books";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSbClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -89,6 +90,7 @@ export async function createBook(_prev: ActionState, formData: FormData): Promis
   } catch (e) {
     return { error: e instanceof Error ? e.message : "오류가 발생했습니다." };
   }
+  updateTag(BOOKS_TAG); // /library 의 캐시된 책 목록 즉시 무효화 (read-your-own-writes)
   revalidatePath("/admin/books");
   revalidatePath("/");
   redirect("/admin/books");
@@ -120,6 +122,7 @@ export async function updateBook(_prev: ActionState, formData: FormData): Promis
   } catch (e) {
     return { error: e instanceof Error ? e.message : "오류가 발생했습니다." };
   }
+  updateTag(BOOKS_TAG); // /library 의 캐시된 책 목록 즉시 무효화 (read-your-own-writes)
   revalidatePath("/admin/books");
   revalidatePath("/");
   redirect("/admin/books");
@@ -135,6 +138,7 @@ export async function setBookPublished(id: number, next: boolean): Promise<Actio
   } catch (e) {
     return { error: e instanceof Error ? e.message : "오류가 발생했습니다." };
   }
+  updateTag(BOOKS_TAG); // /library 의 캐시된 책 목록 즉시 무효화 (read-your-own-writes)
   revalidatePath("/admin/books");
   revalidatePath("/");
   return {};
@@ -163,6 +167,7 @@ export async function reorderBooks(
   } catch (e) {
     return { error: e instanceof Error ? e.message : "순서 변경에 실패했습니다." };
   }
+  updateTag(BOOKS_TAG); // /library 의 캐시된 책 목록 즉시 무효화 (read-your-own-writes)
   revalidatePath("/admin/books");
   revalidatePath("/");
   return {};

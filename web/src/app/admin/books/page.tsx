@@ -68,7 +68,7 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
           <option value="0">숨김</option>
         </select>
         <button className="btn" type="submit">검색</button>
-        <a className="btn ghost" href="/admin/books">초기화</a>
+        <Link className="btn ghost" href="/admin/books">초기화</Link>
       </form>
 
       {books.length === 0 ? (
