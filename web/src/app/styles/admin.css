@@ -74,8 +74,10 @@
 }
 .admin-tab.active::after { opacity: .95; transform: scaleX(1); }
 .admin-tab.active:hover { transform: none; background: var(--accent-tint); }
-.admin-user { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.admin-user { display: flex; align-items: center; gap: 12px; order: 11; }
 .admin-user .who { color: light-dark(#6b655c, #a49a8c); font-size: .88rem; letter-spacing: .02em; }
+/* 테마 토글(햄버거 밖) — 데스크톱은 우측 사용자 묶음 바로 앞에 그룹핑 */
+.admin-header > .theme-btn { order: 10; margin-left: auto; flex: none; }
 /* 헤더 '서재로 이동' 버튼 */
 .admin-home-btn { flex: none; text-decoration: none; }
 .admin-home-btn svg,
@@ -790,11 +792,13 @@
 /* ===== Admin 모바일 햄버거 ===== */
 .admin-title-m { display: none; }
 @media (max-width: 760px) {
-  .admin-header { flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 12px; }
+  .admin-header { flex-wrap: nowrap; justify-content: flex-start; align-items: center; gap: 10px; }
   .admin-title-m {
-    display: inline-flex; align-items: center;
+    display: inline-flex; align-items: center; margin-right: auto;
     font-size: 1.08rem; font-weight: 600; letter-spacing: .02em; color: var(--admin-ink);
   }
+  /* 테마 토글을 제목 오른쪽·햄버거 왼쪽에 나란히 (드롭다운 밖) */
+  .admin-header > .theme-btn { order: 0; margin-left: 0; }
   /* 햄버거 — 라이트 */
   .admin .topbar-burger {
     background: light-dark(#ffffff, #27221e);

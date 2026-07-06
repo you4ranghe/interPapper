@@ -16,6 +16,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="admin">
       <header className="admin-header">
         <span className="admin-title-m">서재관리</span>
+        {/* 테마 토글은 햄버거 밖 — 모바일에서 드롭다운 속 외톨이 아이콘이 되지 않도록 */}
+        <ThemeToggle />
         <TopBarMenu>
           <Link className="btn ghost admin-home-btn" href="/library">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -26,7 +28,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
           <AdminNav />
           <div className="admin-user">
-            <ThemeToggle />
             <span className="who">{session.profile?.name || session.email}</span>
             <LogoutButton />
           </div>

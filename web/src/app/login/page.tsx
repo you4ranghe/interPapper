@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import SocialAuthButtons from "@/components/SocialAuthButtons";
 
 export default function LoginPage() {
   const supabase = createClient();
@@ -39,6 +40,7 @@ export default function LoginPage() {
           <button className="pill-btn solid" type="submit" disabled={loading}>
             {loading ? "로그인 중…" : "로그인"}
           </button>
+          <SocialAuthButtons next="/library" />
           <p className="muted center"><Link href="/forgot-password">비밀번호를 잊으셨나요?</Link></p>
           <p className="muted center">아직 회원이 아니신가요? <Link href="/signup">회원가입</Link></p>
         </form>

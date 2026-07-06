@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import SocialAuthButtons from "@/components/SocialAuthButtons";
 
 export default function SignupPage() {
   const supabase = createClient();
@@ -71,6 +72,7 @@ export default function SignupPage() {
             <button className="pill-btn solid" type="submit" disabled={loading}>
               {loading ? "처리 중…" : "가입하기"}
             </button>
+            <SocialAuthButtons next="/library" />
             <p className="muted center">이미 회원이신가요? <Link href="/login">로그인</Link></p>
           </form>
         )}

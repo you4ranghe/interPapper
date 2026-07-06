@@ -509,6 +509,31 @@
   50%      { opacity: 1; }
 }
 
+/* ===== 소셜 로그인(구글/카카오) 버튼 ===== */
+.social-auth { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.social-divider { display: flex; align-items: center; gap: 12px; margin: 6px 0 2px; }
+.social-divider::before, .social-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.social-divider span { color: light-dark(#8b847a, #8f8779); font-size: .78rem; letter-spacing: .08em; }
+.social-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 50px; padding: 12px 18px;
+  border-radius: 14px; cursor: pointer; font-family: inherit;
+  font-size: .92rem; font-weight: 500; letter-spacing: .01em;
+  border: 1px solid transparent;
+  transition: transform .2s var(--ease-supa), background .2s, border-color .2s, box-shadow .2s, filter .2s;
+}
+.social-btn:active { transform: scale(.98); }
+.social-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.social-btn:disabled { cursor: progress; filter: saturate(.7) brightness(.98); transform: none; }
+.social-ico { flex: none; }
+.social-btn.google {
+  background: light-dark(#ffffff, #27221e);
+  border-color: var(--line);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+.social-btn.google:hover:not(:disabled) { border-color: light-dark(#d7d1c8, #453f38); box-shadow: var(--shadow-2); transform: translateY(-1px); }
+
 .auth-err {
   color: light-dark(#c5221f, #ea9c93);
   font-size: .85rem;
