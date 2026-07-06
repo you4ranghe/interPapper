@@ -43,7 +43,7 @@ export default function SignupPage() {
   return (
     <main className="auth-wrap">
       <div className="auth-card">
-        <p className="eyebrow">Join Interpaper</p>
+        <p className="eyebrow">환영합니다.</p>
         <h1>회원가입</h1>
 
         {sent ? (

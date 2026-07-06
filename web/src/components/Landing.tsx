@@ -161,7 +161,7 @@ export default function Landing() {
 
       <div className="landing-content">
         <header className="landing-head">
-          <p className="landing-eyebrow">Interpaper · 저자의 서재</p>
+          <p className="landing-eyebrow"></p>
           <h1 className="landing-title">
             <span className="title-ko">바우치 서재</span>
             <span className="title-han">書齋</span>

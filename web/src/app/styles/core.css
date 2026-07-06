@@ -248,6 +248,89 @@
 .pill-btn.solid:hover { background: var(--accent-strong); border: none; }
 .pill-btn .who { color: var(--accent-strong); }
 
+/* ===== 계정 메뉴 — 설정 기어 + 무작위 인사말 트리거 → 통합 드롭다운 =====
+   기존 3개(관리 액션·마이페이지·로그아웃)로 흩어져 있던 헤더 우상단을
+   하나의 계정 메뉴로 합쳐 혼잡도를 낮춘다. 드롭다운 내부는 기존 자식
+   컴포넌트(AdminNotifications·ProfileEditButton·LogoutButton)를 그대로
+   재사용하고, 여기서 균일한 '메뉴 행' 모양으로 정규화한다. */
+.acct-menu { position: relative; }
+.acct-trigger {
+  display: inline-flex; align-items: center; gap: 9px;
+  min-height: 42px; padding: 8px 14px; border-radius: 22px;
+  font-family: inherit; font-size: .86rem; letter-spacing: .01em; cursor: pointer;
+  color: var(--ink);
+  background: light-dark(rgba(255,255,255,.92), rgba(32,28,24,.92));
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+  transition: transform .25s var(--ease-supa), background .22s, border-color .22s, box-shadow .22s;
+}
+.acct-trigger:hover { background: light-dark(#ffffff, #27221e); border-color: light-dark(#d7d1c8, #453f38); transform: translateY(-1px); box-shadow: var(--shadow-2); }
+.acct-trigger:active { transform: scale(.98); }
+.acct-trigger:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.acct-gear { width: 18px; height: 18px; flex: none; color: var(--accent-strong); transition: transform .5s var(--ease-spring); }
+.acct-menu.open .acct-gear { transform: rotate(90deg); }
+.acct-greet { white-space: nowrap; }
+.acct-greet .who { color: var(--accent-strong); font-weight: 600; }
+.acct-caret { width: 15px; height: 15px; flex: none; opacity: .55; transition: transform .25s var(--ease-out); }
+.acct-menu.open .acct-caret { transform: rotate(180deg); }
+
+.acct-panel {
+  display: none;
+  position: absolute; top: calc(100% + 10px); right: 0;
+  width: max-content; min-width: 222px; max-width: 84vw; padding: 6px;
+  border-radius: 16px; z-index: 90;
+  background: light-dark(#ffffff, #27221e);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-2);
+}
+.acct-menu.open .acct-panel { display: block; animation: notifPop .22s var(--ease-spring); }
+.acct-rows { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
+
+/* 드롭다운 내부: 재사용한 자식 트리거들을 균일한 메뉴 행으로 정규화 */
+.acct-rows .acct-row,
+.acct-rows .who-btn,
+.acct-rows .bell-btn,
+.acct-rows .logout-btn {
+  width: 100%; min-height: 46px; height: auto;
+  display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+  padding: 11px 14px; border-radius: 10px;
+  background: transparent; border: none; box-shadow: none; white-space: nowrap;
+  color: var(--ink); font-family: inherit; font-size: .95rem; font-weight: 500; letter-spacing: 0;
+  text-decoration: none; cursor: pointer; transform: none;
+  transition: background .16s var(--ease-out), color .16s var(--ease-out), box-shadow .16s var(--ease-out);
+}
+.acct-rows .acct-row:hover,
+.acct-rows .who-btn:hover,
+.acct-rows .bell-btn:hover,
+.acct-rows .logout-btn:hover,
+.acct-rows .acct-row:focus-visible,
+.acct-rows .who-btn:focus-visible,
+.acct-rows .bell-btn:focus-visible,
+.acct-rows .logout-btn:focus-visible {
+  background: var(--accent-tint);
+  box-shadow: inset 3px 0 0 0 var(--accent);
+  color: var(--accent-strong); outline: none; transform: none;
+}
+.acct-rows svg { width: 18px; height: 18px; flex: none; }
+
+/* 알림 행: 벨 아이콘 + '알림' 라벨 + 우측 카운트 배지 */
+.acct-rows .bell-btn::after { content: "알림"; }
+.acct-rows .bell-btn .bell-badge {
+  order: 9; margin-left: auto; position: static; top: auto; right: auto; transform: none;
+}
+
+/* 회원정보 수정 행: 기본 라벨 숨기고 통일된 문구로 노출 */
+.acct-rows .who-btn .who-desktop,
+.acct-rows .who-btn .who-mobile { display: none; }
+.acct-rows .who-btn .who-ico { display: inline-flex; }
+.acct-rows .who-btn::after { content: "회원정보 수정"; }
+
+/* 좁은 화면에선 인사말 문구는 접고 '{이름}님'만 유지 */
+@media (max-width: 560px) {
+  .acct-phrase { display: none; }
+}
+
 /* 모바일 탭 영역 ≥ 44px (Apple HIG / WCAG) */
 @media (max-width: 760px) {
   .pill-btn, .btn, .to-discuss { min-height: 44px; }

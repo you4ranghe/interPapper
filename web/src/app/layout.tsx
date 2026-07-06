@@ -12,7 +12,7 @@ const gowunBatang = Gowun_Batang({
 });
 
 export const metadata: Metadata = {
-  title: "Interpaper · 바우치 서재(書齋)",
+  title: "바우치 서재(書齋)",
   description: "저자의 저서를 LP/Coverflow 감성으로 만나는 서재. 책을 펼치면 저자와의 토론이 시작됩니다.",
 };
 
